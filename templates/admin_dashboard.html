@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Medicine AI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Admin Dashboard</h1>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title">{{ total_users }}</h3>
+                <p class="card-text">Total Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title">{{ searches_today }}</h3>
+                <p class="card-text">Searches Today</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title">{{ searches_this_month }}</h3>
+                <p class="card-text">Searches This Month</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title">{{ '{:.1f}'.format(searches_this_month / total_users) if total_users > 0 else '0' }}</h3>
+                <p class="card-text">Avg. Searches/User</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3 class="card-title mb-0">Subscription Distribution</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded">
+                            <h4>{{ free_users }}</h4>
+                            <p class="mb-0">Free</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded">
+                            <h4>{{ basic_users }}</h4>
+                            <p class="mb-0">Basic</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded">
+                            <h4>{{ premium_users }}</h4>
+                            <p class="mb-0">Premium</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3 class="card-title mb-0">Quick Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('home') }}" class="btn btn-primary">
+                        <i data-feather="search"></i> Test Search Interface
+                    </a>
+                    <button class="btn btn-secondary" onclick="alert('This feature is coming soon!')">
+                        <i data-feather="database"></i> View Medicine Database
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h3 class="card-title mb-0">User Management</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Subscription</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.subscription %}
+                                {{ user.subscription.plan_type|capitalize }}
+                            {% else %}
+                                No Subscription
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.subscription and user.subscription.is_active() %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-sm btn-primary">
+                                <i data-feather="edit" class="feather-sm"></i> Manage
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add any admin dashboard specific scripts here
+    document.addEventListener('DOMContentLoaded', function() {
+        const featherIcons = document.querySelectorAll('.feather-sm');
+        featherIcons.forEach(icon => {
+            icon.style.width = '16px';
+            icon.style.height = '16px';
+        });
+    });
+</script>
+{% endblock %}

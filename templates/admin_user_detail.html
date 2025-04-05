@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}User Details - {{ user.username }} - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>User Details: {{ user.username }}</h1>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+                <i data-feather="arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h3 class="mb-0">User Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Username:</strong> {{ user.username }}</p>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Registered:</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h3 class="mb-0">Subscription Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Plan:</strong> 
+                            {% if user.subscription %}
+                                {{ user.subscription.plan_type|capitalize }}
+                            {% else %}
+                                No Subscription
+                            {% endif %}
+                        </p>
+                        
+                        <p><strong>Status:</strong> 
+                            {% if user.subscription and user.subscription.is_active() %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </p>
+                        
+                        <p><strong>Search Limit:</strong> 
+                            {% if user.subscription %}
+                                {{ user.subscription.plan_search_limit }}
+                            {% else %}
+                                5 (default)
+                            {% endif %}
+                        </p>
+                        
+                        {% if user.subscription and user.subscription.end_date %}
+                            <p><strong>Expires:</strong> {{ user.subscription.end_date.strftime('%Y-%m-%d') }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h3 class="mb-0">Update Subscription</h3>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('admin_user_detail', user_id=user.id) }}" method="post">
+                            <input type="hidden" name="action" value="update_subscription">
+                            
+                            <div class="mb-3">
+                                <label for="plan_type" class="form-label">Plan Type</label>
+                                <select class="form-select" id="plan_type" name="plan_type">
+                                    <option value="free" {% if user.subscription and user.subscription.plan_type == 'free' %}selected{% endif %}>Free</option>
+                                    <option value="basic" {% if user.subscription and user.subscription.plan_type == 'basic' %}selected{% endif %}>Basic</option>
+                                    <option value="premium" {% if user.subscription and user.subscription.plan_type == 'premium' %}selected{% endif %}>Premium</option>
+                                    <option value="admin" {% if user.subscription and user.subscription.plan_type == 'admin' %}selected{% endif %}>Admin (Unlimited)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="search_limit" class="form-label">Search Limit</label>
+                                <input type="number" class="form-control" id="search_limit" name="search_limit" value="{{ user.subscription.plan_search_limit if user.subscription else 5 }}" min="1">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="duration_days" class="form-label">Duration (days)</label>
+                                <input type="number" class="form-control" id="duration_days" name="duration_days" value="30" min="0">
+                                <div class="form-text">Set to 0 for no expiration</div>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if user.subscription and user.subscription.is_active_flag %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">Is Active</label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Update Subscription</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h3 class="mb-0">Reset Password</h3>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('admin_user_detail', user_id=user.id) }}" method="post">
+                            <input type="hidden" name="action" value="reset_password">
+                            
+                            <div class="mb-3">
+                                <label for="new_password" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="new_password" name="new_password" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-warning">Reset Password</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3 class="mb-0">Recent Search History</h3>
+            </div>
+            <div class="card-body">
+                {% if search_history %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Medicine Name</th>
+                                    <th>Date & Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for search in search_history %}
+                                <tr>
+                                    <td>{{ search.query }}</td>
+                                    <td>{{ search.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-center py-3">No search history found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

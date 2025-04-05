@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{{ medicine.name }} - Medicine Information{% endblock %}
+
+{% block content %}
+<div class="row mt-3 mb-4">
+    <div class="col-md-8 offset-md-2">
+        <a href="{{ url_for('home') }}" class="btn btn-outline-primary mb-4">
+            <i data-feather="arrow-left"></i> New Search
+        </a>
+        
+        {% if not medicine.found %}
+            <div class="alert alert-warning">
+                <h3>Medicine Not Found</h3>
+                <p>{{ medicine.description }}</p>
+                <p>Please check the spelling or try searching for a different medication.</p>
+            </div>
+        {% else %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">{{ medicine.name }}</h2>
+                </div>
+                <div class="card-body">
+                    <div class="medicine-description mb-4">
+                        <h3>Description</h3>
+                        <p>{{ medicine.description }}</p>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h4 class="mb-0">Use Cases</h4>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="mb-0">
+                                        {% for use in medicine.useCases %}
+                                            <li>{{ use }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-info text-white">
+                                    <h4 class="mb-0">Dosage Information</h4>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>When to take:</strong> {{ medicine.dosage.timing }}</p>
+                                    <p><strong>How long:</strong> {{ medicine.dosage.duration }}</p>
+                                    <p><strong>Breaks needed:</strong> {{ medicine.dosage.breaks }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h4 class="mb-0">Benefits</h4>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="mb-0">
+                                        {% for pro in medicine.pros %}
+                                            <li>{{ pro }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-danger text-white">
+                                    <h4 class="mb-0">Side Effects</h4>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="mb-0">
+                                        {% for con in medicine.cons %}
+                                            <li>{{ con }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="warnings mb-3">
+                        <h3>Important Warnings</h3>
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                {% for warning in medicine.warnings %}
+                                    <li>{{ warning }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="medical-disclaimer mt-4 p-3 bg-light">
+                        <h5>Medical Disclaimer</h5>
+                        <p class="mb-0">This information is provided for educational purposes only and is not intended as a substitute for professional medical advice. Always consult your healthcare provider regarding any medical conditions or treatments.</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if current_user.is_authenticated %}
+            <div class="remaining-searches text-center p-2 bg-light rounded mt-3">
+                <p class="mb-0">You have {{ current_user.get_remaining_searches() }} searches remaining on your {{ current_user.subscription.plan_type|capitalize if current_user.subscription else 'Free' }} plan.</p>
+                {% if current_user.get_remaining_searches() < 5 %}
+                    <a href="{{ url_for('subscription') }}" class="btn btn-outline-primary btn-sm mt-2">Upgrade Subscription</a>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="text-center mt-4">
+                <p>Create an account to save your search history and get more searches!</p>
+                <a href="{{ url_for('register') }}" class="btn btn-primary">Register Now</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

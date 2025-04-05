@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription Plans - Medicine AI{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <h1 class="text-center mb-5">Subscription Plans</h1>
+        
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header text-center bg-light">
+                        <h3 class="my-0">Free</h3>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h1 class="card-title text-center mb-4">$0<small class="text-muted fw-light">/month</small></h1>
+                        <ul class="list-unstyled mt-3 mb-4">
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> 5 searches per day</li>
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> Basic medication info</li>
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> Search history</li>
+                            <li class="mb-2"><i data-feather="x" class="text-danger me-2"></i> No detailed dosage info</li>
+                            <li class="mb-2"><i data-feather="x" class="text-danger me-2"></i> No priority support</li>
+                        </ul>
+                        <div class="mt-auto">
+                            <form action="{{ url_for('upgrade_subscription') }}" method="post" class="d-grid">
+                                <input type="hidden" name="plan_type" value="free">
+                                <button type="submit" class="btn btn-lg btn-outline-primary {% if current_plan == 'free' %}disabled{% endif %}">
+                                    {% if current_plan == 'free' %}Current Plan{% else %}Select Plan{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 shadow border-primary">
+                    <div class="card-header text-center bg-primary text-white">
+                        <h3 class="my-0">Basic</h3>
+                        <span class="badge bg-warning">Popular</span>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h1 class="card-title text-center mb-4">$4.99<small class="text-muted fw-light">/month</small></h1>
+                        <ul class="list-unstyled mt-3 mb-4">
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> 50 searches per month</li>
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> Detailed medication info</li>
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> Comprehensive search history</li>
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> Detailed dosage information</li>
+                            <li class="mb-2"><i data-feather="x" class="text-danger me-2"></i> No priority support</li>
+                        </ul>
+                        <div class="mt-auto">
+                            <form action="{{ url_for('upgrade_subscription') }}" method="post" class="d-grid">
+                                <input type="hidden" name="plan_type" value="basic">
+                                <button type="submit" class="btn btn-lg btn-primary {% if current_plan == 'basic' %}disabled{% endif %}">
+                                    {% if current_plan == 'basic' %}Current Plan{% else %}Select Plan{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header text-center bg-light">
+                        <h3 class="my-0">Premium</h3>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h1 class="card-title text-center mb-4">$9.99<small class="text-muted fw-light">/month</small></h1>
+                        <ul class="list-unstyled mt-3 mb-4">
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> 500 searches per month</li>
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> Detailed medication info</li>
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> Unlimited search history</li>
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> Comprehensive dosage guidelines</li>
+                            <li class="mb-2"><i data-feather="check" class="text-success me-2"></i> Priority support</li>
+                        </ul>
+                        <div class="mt-auto">
+                            <form action="{{ url_for('upgrade_subscription') }}" method="post" class="d-grid">
+                                <input type="hidden" name="plan_type" value="premium">
+                                <button type="submit" class="btn btn-lg btn-outline-primary {% if current_plan == 'premium' %}disabled{% endif %}">
+                                    {% if current_plan == 'premium' %}Current Plan{% else %}Select Plan{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">Why Subscribe?</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><i data-feather="clipboard" class="me-2"></i> Comprehensive Information</h5>
+                                <p>Access detailed information about medications, including usage patterns, side effects, and drug interactions that aren't available on the free plan.</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i data-feather="search" class="me-2"></i> More Searches</h5>
+                                <p>Increase your monthly search limit to access our database as often as needed for your research or personal health management.</p>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h5><i data-feather="clock" class="me-2"></i> Detailed Scheduling</h5>
+                                <p>Get precise medication scheduling information including when to take, how long to continue, and when breaks are needed.</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i data-feather="heart" class="me-2"></i> Support Our Service</h5>
+                                <p>Your subscription helps us maintain and improve our service to provide accurate, up-to-date pharmaceutical information.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        feather.replace();
+    });
+</script>
+{% endblock %}

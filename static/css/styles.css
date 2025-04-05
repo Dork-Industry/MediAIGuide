@@ -1,0 +1,145 @@
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar-brand svg {
+    margin-right: 10px;
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 2rem 0;
+}
+
+/* Search Box Style */
+.search-section {
+    margin-bottom: 3rem;
+}
+
+/* Cards */
+.card {
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+/* Medicine Information Styles */
+.medicine-description {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.remaining-searches {
+    background-color: #e9ecef;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+/* Footer */
+.footer {
+    margin-top: 2rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Dashboard elements */
+.feather-sm {
+    width: 16px;
+    height: 16px;
+}
+
+/* Subscription plans */
+.popular-banner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 5px 15px;
+    background-color: #ffc107;
+    color: #000;
+    font-weight: bold;
+    border-radius: 0 10px 0 10px;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2.2rem;
+    }
+    
+    .hero-section p {
+        font-size: 1.1rem;
+    }
+    
+    .card-deck {
+        display: block;
+    }
+}
+
+/* Focus states for accessibility */
+a:focus, button:focus, input:focus, select:focus, textarea:focus {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+/* Animation for search results */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.medicine-description, .card {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+/* Error page styles */
+.error-page {
+    padding: 3rem 0;
+}
+
+.error-page h1 {
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+/* Tooltip style */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}

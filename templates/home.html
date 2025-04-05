@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Medicine AI - Smart Medicine Information{% endblock %}
+
+{% block content %}
+<div class="row mt-5 mb-5">
+    <div class="col-md-6 offset-md-3 text-center">
+        <div class="hero-section mb-5">
+            <h1 class="display-4 mb-4">Medicine AI</h1>
+            <p class="lead">Get accurate, detailed information about any medication with our AI-powered database.</p>
+            
+            <div class="mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#0d6efd" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-activity"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </div>
+        </div>
+        
+        <div class="search-section">
+            <form action="{{ url_for('search') }}" method="post" class="mb-4">
+                <div class="input-group mb-3">
+                    <input type="text" name="medicine_name" class="form-control form-control-lg" placeholder="Enter medicine name..." required>
+                    <button class="btn btn-primary btn-lg" type="submit">
+                        <i data-feather="search"></i> Search
+                    </button>
+                </div>
+            </form>
+            
+            {% if current_user.is_authenticated %}
+                <p>You have {{ current_user.get_remaining_searches() }} searches remaining on your {{ current_user.subscription.plan_type|capitalize if current_user.subscription else 'Free' }} plan.</p>
+            {% else %}
+                <p class="text-muted">Create an account to track your searches and get more information!</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card mb-4 shadow-sm h-100">
+            <div class="card-body text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0d6efd" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <h3 class="mt-3">Detailed Information</h3>
+                <p>Get comprehensive details about medications, including use cases, pros, cons, and dosage instructions.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4 shadow-sm h-100">
+            <div class="card-body text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0d6efd" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <h3 class="mt-3">Medication Scheduling</h3>
+                <p>Learn when to take medications, how long treatments should last, and if any breaks are needed.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4 shadow-sm h-100">
+            <div class="card-body text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0d6efd" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <h3 class="mt-3">Accurate & Reliable</h3>
+                <p>Our AI pulls from medical databases to provide trustworthy information about pharmaceuticals.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4 mb-5">
+    <div class="col-md-8 offset-md-2">
+        <div class="disclaimer p-4 bg-light rounded">
+            <h4>Medical Disclaimer</h4>
+            <p>The information provided by Medicine AI is for informational purposes only and is not intended as a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition or medication.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}
