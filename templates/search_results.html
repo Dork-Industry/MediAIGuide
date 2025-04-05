@@ -5,7 +5,7 @@
 {% block content %}
 <div class="row mt-3 mb-4">
     <div class="col-md-8 offset-md-2">
-        <a href="{{ url_for('home') }}" class="btn btn-outline-primary mb-4">
+        <a href="{{ url_for('home') }}" class="btn btn-outline-teal mb-4">
             <i data-feather="arrow-left"></i> New Search
         </a>
         
@@ -16,26 +16,29 @@
                 <p>Please check the spelling or try searching for a different medication.</p>
             </div>
         {% else %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-teal text-white">
                     <h2 class="mb-0">{{ medicine.name }}</h2>
                 </div>
                 <div class="card-body">
                     <div class="medicine-description mb-4">
-                        <h3>Description</h3>
+                        <h3 class="text-teal">Description</h3>
                         <p>{{ medicine.description }}</p>
                     </div>
                     
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="card h-100">
-                                <div class="card-header bg-success text-white">
-                                    <h4 class="mb-0">Use Cases</h4>
+                                <div class="card-header">
+                                    <h4 class="mb-0 d-flex align-items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle me-2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                        Use Cases
+                                    </h4>
                                 </div>
                                 <div class="card-body">
-                                    <ul class="mb-0">
+                                    <ul class="list-group list-group-flush">
                                         {% for use in medicine.useCases %}
-                                            <li>{{ use }}</li>
+                                            <li class="list-group-item">{{ use }}</li>
                                         {% endfor %}
                                     </ul>
                                 </div>
@@ -44,13 +47,40 @@
                         
                         <div class="col-md-6">
                             <div class="card h-100">
-                                <div class="card-header bg-info text-white">
-                                    <h4 class="mb-0">Dosage Information</h4>
+                                <div class="card-header">
+                                    <h4 class="mb-0 d-flex align-items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock me-2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                        Dosage Information
+                                    </h4>
                                 </div>
                                 <div class="card-body">
-                                    <p><strong>When to take:</strong> {{ medicine.dosage.timing }}</p>
-                                    <p><strong>How long:</strong> {{ medicine.dosage.duration }}</p>
-                                    <p><strong>Breaks needed:</strong> {{ medicine.dosage.breaks }}</p>
+                                    <div class="d-flex mb-3">
+                                        <div class="me-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        </div>
+                                        <div>
+                                            <strong>When to take:</strong><br>
+                                            {{ medicine.dosage.timing }}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex mb-3">
+                                        <div class="me-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-activity"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                                        </div>
+                                        <div>
+                                            <strong>How long:</strong><br>
+                                            {{ medicine.dosage.duration }}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-pause-circle"><circle cx="12" cy="12" r="10"></circle><line x1="10" y1="15" x2="10" y2="9"></line><line x1="14" y1="15" x2="14" y2="9"></line></svg>
+                                        </div>
+                                        <div>
+                                            <strong>Breaks needed:</strong><br>
+                                            {{ medicine.dosage.breaks }}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -59,13 +89,16 @@
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="card h-100">
-                                <div class="card-header bg-success text-white">
-                                    <h4 class="mb-0">Benefits</h4>
+                                <div class="card-header">
+                                    <h4 class="mb-0 d-flex align-items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-thumbs-up me-2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                                        Benefits
+                                    </h4>
                                 </div>
                                 <div class="card-body">
-                                    <ul class="mb-0">
+                                    <ul class="list-group list-group-flush">
                                         {% for pro in medicine.pros %}
-                                            <li>{{ pro }}</li>
+                                            <li class="list-group-item">{{ pro }}</li>
                                         {% endfor %}
                                     </ul>
                                 </div>
@@ -74,13 +107,16 @@
                         
                         <div class="col-md-6">
                             <div class="card h-100">
-                                <div class="card-header bg-danger text-white">
-                                    <h4 class="mb-0">Side Effects</h4>
+                                <div class="card-header">
+                                    <h4 class="mb-0 d-flex align-items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle me-2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                        Side Effects
+                                    </h4>
                                 </div>
                                 <div class="card-body">
-                                    <ul class="mb-0">
+                                    <ul class="list-group list-group-flush">
                                         {% for con in medicine.cons %}
-                                            <li>{{ con }}</li>
+                                            <li class="list-group-item">{{ con }}</li>
                                         {% endfor %}
                                     </ul>
                                 </div>
@@ -89,7 +125,7 @@
                     </div>
                     
                     <div class="warnings mb-3">
-                        <h3>Important Warnings</h3>
+                        <h3 class="text-teal">Important Warnings</h3>
                         <div class="alert alert-danger">
                             <ul class="mb-0">
                                 {% for warning in medicine.warnings %}
@@ -99,8 +135,8 @@
                         </div>
                     </div>
                     
-                    <div class="medical-disclaimer mt-4 p-3 bg-light">
-                        <h5>Medical Disclaimer</h5>
+                    <div class="medicine-description mt-4">
+                        <h5 class="text-teal">Medical Disclaimer</h5>
                         <p class="mb-0">This information is provided for educational purposes only and is not intended as a substitute for professional medical advice. Always consult your healthcare provider regarding any medical conditions or treatments.</p>
                     </div>
                 </div>
@@ -108,16 +144,16 @@
         {% endif %}
         
         {% if current_user.is_authenticated %}
-            <div class="remaining-searches text-center p-2 bg-light rounded mt-3">
-                <p class="mb-0">You have {{ current_user.get_remaining_searches() }} searches remaining on your {{ current_user.subscription.plan_type|capitalize if current_user.subscription else 'Free' }} plan.</p>
+            <div class="remaining-searches">
+                <p class="mb-0">You have <strong>{{ current_user.get_remaining_searches() }}</strong> searches remaining on your <strong>{{ current_user.subscription.plan_type|capitalize if current_user.subscription else 'Free' }}</strong> plan.</p>
                 {% if current_user.get_remaining_searches() < 5 %}
-                    <a href="{{ url_for('subscription') }}" class="btn btn-outline-primary btn-sm mt-2">Upgrade Subscription</a>
+                    <a href="{{ url_for('subscription') }}" class="btn btn-teal btn-sm mt-2">Upgrade Subscription</a>
                 {% endif %}
             </div>
         {% else %}
             <div class="text-center mt-4">
                 <p>Create an account to save your search history and get more searches!</p>
-                <a href="{{ url_for('register') }}" class="btn btn-primary">Register Now</a>
+                <a href="{{ url_for('register') }}" class="btn btn-teal">Register Now</a>
             </div>
         {% endif %}
     </div>

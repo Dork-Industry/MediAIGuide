@@ -6,40 +6,69 @@
 <div class="row mt-5">
     <div class="col-md-6 offset-md-3">
         <div class="card shadow">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-teal text-white">
                 <h3 class="mb-0">Create an Account</h3>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-plus"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                </div>
+                
                 <form method="POST" action="{{ url_for('register') }}">
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i data-feather="user"></i>
+                            </span>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i data-feather="mail"></i>
+                            </span>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i data-feather="lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                        </div>
+                        <div class="form-text">Password must be at least 6 characters</div>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Register</button>
+                        <button type="submit" class="btn btn-teal btn-lg">Register</button>
                     </div>
                 </form>
             </div>
-            <div class="card-footer text-center">
+            <div class="card-footer text-center py-3">
                 <p class="mb-0">Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
             </div>
         </div>
         
-        <div class="mt-4 p-3 bg-light rounded">
-            <h5>Benefits of registering:</h5>
-            <ul>
-                <li>Save your search history</li>
-                <li>Get more searches per day</li>
-                <li>Access to premium features with subscription</li>
-            </ul>
+        <div class="medicine-description mt-4">
+            <h5 class="text-teal mb-3">Benefits of registering:</h5>
+            <div class="mb-2">
+                <div class="d-flex plan-feature">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>Save your search history</span>
+                </div>
+                <div class="d-flex plan-feature">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>Get more searches per day</span>
+                </div>
+                <div class="d-flex plan-feature">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>Access to premium features with subscription</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>

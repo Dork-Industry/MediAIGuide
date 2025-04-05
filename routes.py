@@ -30,7 +30,7 @@ def login():
         password = request.form.get('password')
         remember = 'remember' in request.form
         
-        user = User.query.filter_by(username=username).first()
+        user = db.session.query(User).filter_by(username=username).first()
         
         if not user or not user.check_password(password):
             flash('Invalid username or password', 'danger')
@@ -62,11 +62,11 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        if User.query.filter_by(username=username).first():
+        if db.session.query(User).filter_by(username=username).first():
             flash('Username already taken.', 'danger')
             return redirect(url_for('register'))
             
-        if User.query.filter_by(email=email).first():
+        if db.session.query(User).filter_by(email=email).first():
             flash('Email already registered.', 'danger')
             return redirect(url_for('register'))
             
@@ -151,7 +151,7 @@ def api_search():
 @login_required
 def user_dashboard():
     # Get user's search history
-    search_history = SearchHistory.query.filter_by(user_id=current_user.id)\
+    search_history = db.session.query(SearchHistory).filter_by(user_id=current_user.id)\
                                  .order_by(SearchHistory.timestamp.desc())\
                                  .limit(20).all()
                                  
@@ -223,7 +223,7 @@ def admin_dashboard():
         abort(403)
         
     # Get user and subscription stats
-    users = User.query.filter(User.is_admin == False).all()
+    users = db.session.query(User).filter(User.is_admin == False).all()
     total_users = len(users)
     
     free_users = sum(1 for u in users if u.subscription and u.subscription.plan_type == 'free')
@@ -232,10 +232,10 @@ def admin_dashboard():
     
     # Get search stats
     today = datetime.utcnow().date()
-    searches_today = SearchHistory.query.filter(db.func.date(SearchHistory.timestamp) == today).count()
+    searches_today = db.session.query(SearchHistory).filter(db.func.date(SearchHistory.timestamp) == today).count()
     
     this_month = datetime.utcnow().replace(day=1)
-    searches_this_month = SearchHistory.query.filter(SearchHistory.timestamp >= this_month).count()
+    searches_this_month = db.session.query(SearchHistory).filter(SearchHistory.timestamp >= this_month).count()
     
     return render_template('admin_dashboard.html',
                           title='Admin Dashboard',
@@ -253,7 +253,7 @@ def admin_user_detail(user_id):
     if not current_user.is_admin:
         abort(403)
         
-    user = User.query.get_or_404(user_id)
+    user = db.session.get(User, user_id) or abort(404)
     
     if request.method == 'POST':
         action = request.form.get('action')
@@ -294,7 +294,7 @@ def admin_user_detail(user_id):
         return redirect(url_for('admin_user_detail', user_id=user.id))
     
     # Get user's search history
-    search_history = SearchHistory.query.filter_by(user_id=user.id)\
+    search_history = db.session.query(SearchHistory).filter_by(user_id=user.id)\
                                  .order_by(SearchHistory.timestamp.desc())\
                                  .limit(10).all()
                                  

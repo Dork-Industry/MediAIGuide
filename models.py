@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 class User(UserMixin, db.Model):
@@ -39,7 +39,7 @@ class User(UserMixin, db.Model):
         if not self.subscription:
             # For free tier, calculate remaining daily searches
             today = datetime.utcnow().date()
-            searches_today = SearchHistory.query.filter(
+            searches_today = db.session.query(SearchHistory).filter(
                 SearchHistory.user_id == self.id,
                 db.func.date(SearchHistory.timestamp) == today
             ).count()
@@ -47,7 +47,7 @@ class User(UserMixin, db.Model):
         
         # For paid subscriptions, calculate remaining monthly searches
         this_month = datetime.utcnow().replace(day=1)
-        searches_this_month = SearchHistory.query.filter(
+        searches_this_month = db.session.query(SearchHistory).filter(
             SearchHistory.user_id == self.id,
             SearchHistory.timestamp >= this_month
         ).count()
@@ -86,7 +86,7 @@ class MedicineCache(db.Model):
     
     @staticmethod
     def get_cached_data(medicine_name):
-        cache_entry = MedicineCache.query.filter_by(medicine_name=medicine_name).first()
+        cache_entry = db.session.query(MedicineCache).filter_by(medicine_name=medicine_name).first()
         if cache_entry:
             # Check if cache is older than a week
             cache_age = datetime.utcnow() - cache_entry.last_updated
@@ -96,7 +96,7 @@ class MedicineCache(db.Model):
     
     @staticmethod
     def update_cache(medicine_name, data):
-        cache_entry = MedicineCache.query.filter_by(medicine_name=medicine_name).first()
+        cache_entry = db.session.query(MedicineCache).filter_by(medicine_name=medicine_name).first()
         if cache_entry:
             cache_entry.data = data
             cache_entry.last_updated = datetime.utcnow()

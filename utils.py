@@ -137,7 +137,7 @@ def init_admin_account():
     """Create an admin account if none exists"""
     from models import User, Subscription
     
-    admin = User.query.filter_by(is_admin=True).first()
+    admin = db.session.query(User).filter_by(is_admin=True).first()
     if not admin:
         admin = User(
             username="admin",
