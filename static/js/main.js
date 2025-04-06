@@ -1,129 +1,115 @@
-// Main JavaScript file for Medicine AI application
+// Main JavaScript functionality for the Medicine AI application
 
+// Apply ripple effect to buttons with the btn-ripple class
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize feather icons
-    feather.replace();
-    
-    // Setup tooltips if Bootstrap's tooltip component is needed
-    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+    // Initialize all Feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
     }
     
-    // Setup alerts to auto-dismiss after 5 seconds
-    const alerts = document.querySelectorAll('.alert:not(.persistent)');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            const closeButton = alert.querySelector('.btn-close');
-            if (closeButton) {
-                closeButton.click();
-            } else {
-                alert.classList.add('fade');
-                setTimeout(() => {
-                    alert.remove();
-                }, 150);
-            }
-        }, 5000);
+    // Add ripple effect to buttons
+    const rippleButtons = document.querySelectorAll('.btn-ripple');
+    
+    rippleButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = button.getBoundingClientRect();
+            
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            ripple.classList.add('ripple');
+            
+            button.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
     });
     
-    // Add active class to current nav item
-    const currentLocation = window.location.pathname;
-    const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
-    navLinks.forEach(link => {
-        if (link.getAttribute('href') === currentLocation) {
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            
+            if (href !== '#') {
+                e.preventDefault();
+                
+                const targetElement = document.querySelector(href);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        });
+    });
+    
+    // Mobile navigation bar active state based on current page
+    const currentPath = window.location.pathname;
+    document.querySelectorAll('.mobile-nav .nav-link').forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
             link.classList.add('active');
         }
     });
-
-    // Form validation enhancement
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-                
-                // Add visual feedback for invalid fields
-                const invalidFields = form.querySelectorAll(':invalid');
-                invalidFields.forEach(field => {
-                    // Create feedback message if it doesn't exist
-                    let feedback = field.nextElementSibling;
-                    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
-                        feedback = document.createElement('div');
-                        feedback.classList.add('invalid-feedback');
-                        field.parentNode.insertBefore(feedback, field.nextSibling);
-                    }
-                    
-                    // Set feedback message based on validity state
-                    if (field.validity.valueMissing) {
-                        feedback.textContent = 'This field is required';
-                    } else if (field.validity.typeMismatch) {
-                        feedback.textContent = 'Please enter a valid format';
-                    } else if (field.validity.tooShort) {
-                        feedback.textContent = `Must be at least ${field.minLength} characters`;
-                    } else {
-                        feedback.textContent = 'Invalid input';
-                    }
-                    
-                    field.classList.add('is-invalid');
-                });
-            }
-        });
-    });
 });
 
-// Function to format date to a readable format
-function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-}
-
-// Function to safely initialize any third-party components
-function initializeComponents() {
-    // This can be extended with additional component initializations
-    if (document.querySelector('.chart-container') && typeof Chart !== 'undefined') {
-        initializeCharts();
-    }
-}
-
-// Function to handle session timeout
-function setupSessionTimeoutWarning() {
-    // If user is logged in, set a warning for session timeout
-    if (document.querySelector('.navbar-nav .nav-link[href="/logout"]')) {
-        const sessionTimeout = 30 * 60 * 1000; // 30 minutes
-        const warningTime = 5 * 60 * 1000; // 5 minutes before timeout
-        
-        setTimeout(() => {
-            // Show warning
-            const warningDiv = document.createElement('div');
-            warningDiv.classList.add('alert', 'alert-warning', 'alert-dismissible', 'fade', 'show', 'fixed-top', 'w-50', 'mx-auto', 'mt-3');
-            warningDiv.innerHTML = `
-                <strong>Warning:</strong> Your session will expire in 5 minutes. 
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                <div class="mt-2">
-                    <button class="btn btn-sm btn-primary extend-session">Extend Session</button>
-                </div>
-            `;
-            document.body.appendChild(warningDiv);
-            
-            // Add event listener to extend session button
-            const extendButton = warningDiv.querySelector('.extend-session');
-            if (extendButton) {
-                extendButton.addEventListener('click', function() {
-                    // Make a request to the server to extend the session
-                    fetch('/ping', { method: 'GET' })
-                        .then(() => {
-                            warningDiv.remove();
-                            setupSessionTimeoutWarning(); // Reset the timeout warning
-                        });
-                });
+// Add animation to elements when they come into view
+const animateOnScroll = () => {
+    const elements = document.querySelectorAll('.animate-on-scroll');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animated');
+                observer.unobserve(entry.target);
             }
-        }, sessionTimeout - warningTime);
+        });
+    }, { threshold: 0.1 });
+    
+    elements.forEach(element => {
+        observer.observe(element);
+    });
+};
+
+// Initialize any animations
+if ('IntersectionObserver' in window) {
+    document.addEventListener('DOMContentLoaded', animateOnScroll);
+}
+
+// Add additional ripple styles
+const style = document.createElement('style');
+style.innerHTML = `
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
     }
 }
 
-// Call any initialization functions
-initializeComponents();
-setupSessionTimeoutWarning();
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.animate-on-scroll.animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+`;
+document.head.appendChild(style);

@@ -29,7 +29,9 @@ def create_dummy_doctors():
                 "available_days": "Mon,Tue,Wed,Thu,Fri",
                 "available_hours": "10:00 AM - 1:00 PM, 5:00 PM - 8:00 PM",
                 "profile_image": "/static/images/doctors/dr_sharma.jpg",
-                "is_verified": True
+                "is_verified": True,
+                "average_rating": 4.8,
+                "total_ratings": 245
             },
             {
                 "username": "dr_patel",
@@ -48,7 +50,9 @@ def create_dummy_doctors():
                 "available_days": "Mon,Wed,Fri",
                 "available_hours": "9:00 AM - 2:00 PM",
                 "profile_image": "/static/images/doctors/dr_patel.jpg",
-                "is_verified": True
+                "is_verified": True,
+                "average_rating": 4.7,
+                "total_ratings": 189
             },
             {
                 "username": "dr_singh",
@@ -67,7 +71,9 @@ def create_dummy_doctors():
                 "available_days": "Tue,Thu,Sat",
                 "available_hours": "11:00 AM - 4:00 PM",
                 "profile_image": "/static/images/doctors/dr_singh.jpg",
-                "is_verified": True
+                "is_verified": True,
+                "average_rating": 4.9,
+                "total_ratings": 320
             },
             {
                 "username": "dr_gupta",
@@ -86,7 +92,93 @@ def create_dummy_doctors():
                 "available_days": "Mon,Tue,Wed,Thu,Fri",
                 "available_hours": "9:00 AM - 1:00 PM, 4:00 PM - 6:00 PM",
                 "profile_image": "/static/images/doctors/dr_gupta.jpg",
-                "is_verified": True
+                "is_verified": True,
+                "average_rating": 4.6,
+                "total_ratings": 178
+            },
+            {
+                "username": "dr_khan",
+                "email": "dr.khan@example.com",
+                "password": "doctor123",
+                "full_name": "Dr. Farah Khan",
+                "specialty": "Gynecology",
+                "qualification": "MBBS, MS (Obstetrics & Gynecology)",
+                "experience_years": 14,
+                "license_number": "MCI-56789012",
+                "bio": "Dr. Farah Khan is a highly respected gynecologist specializing in women's reproductive health. She provides comprehensive care for women of all ages, from adolescence through menopause. Dr. Khan is known for her expertise in minimally invasive gynecological procedures and her compassionate approach to patient care.",
+                "city": "Hyderabad",
+                "state": "Telangana",
+                "country": "India",
+                "consultation_fee": 1600,
+                "available_days": "Mon,Tue,Thu,Fri",
+                "available_hours": "10:00 AM - 2:00 PM, 4:00 PM - 7:00 PM",
+                "profile_image": "/static/images/doctors/dr_khan.jpg",
+                "is_verified": True,
+                "average_rating": 4.8,
+                "total_ratings": 213
+            },
+            {
+                "username": "dr_kumar",
+                "email": "dr.kumar@example.com",
+                "password": "doctor123",
+                "full_name": "Dr. Vikram Kumar",
+                "specialty": "Neurology",
+                "qualification": "MBBS, DM (Neurology), Fellowship in Epilepsy",
+                "experience_years": 16,
+                "license_number": "MCI-67890123",
+                "bio": "Dr. Vikram Kumar is a distinguished neurologist with expertise in treating various neurological disorders including epilepsy, Parkinson's disease, and multiple sclerosis. His research contributions to the field of epilepsy management have been recognized internationally. Dr. Kumar's patient-centered approach focuses on comprehensive care and quality of life improvement.",
+                "city": "Pune",
+                "state": "Maharashtra",
+                "country": "India",
+                "consultation_fee": 2000,
+                "available_days": "Wed,Thu,Fri,Sat",
+                "available_hours": "9:00 AM - 3:00 PM",
+                "profile_image": "/static/images/doctors/dr_kumar.jpg",
+                "is_verified": True,
+                "average_rating": 4.9,
+                "total_ratings": 276
+            },
+            {
+                "username": "dr_verma",
+                "email": "dr.verma@example.com",
+                "password": "doctor123",
+                "full_name": "Dr. Anil Verma",
+                "specialty": "Psychiatry",
+                "qualification": "MBBS, MD (Psychiatry)",
+                "experience_years": 11,
+                "license_number": "MCI-78901234",
+                "bio": "Dr. Anil Verma is a dedicated psychiatrist specializing in mood disorders, anxiety, and addiction treatment. He offers a blend of medication management and psychotherapy, tailored to each patient's needs. Dr. Verma's holistic approach encompasses lifestyle changes, stress management techniques, and family support to promote mental well-being.",
+                "city": "Kolkata",
+                "state": "West Bengal",
+                "country": "India",
+                "consultation_fee": 1400,
+                "available_days": "Mon,Wed,Fri,Sat",
+                "available_hours": "11:00 AM - 7:00 PM",
+                "profile_image": "/static/images/doctors/dr_verma.jpg",
+                "is_verified": True,
+                "average_rating": 4.7,
+                "total_ratings": 152
+            },
+            {
+                "username": "dr_reddy",
+                "email": "dr.reddy@example.com",
+                "password": "doctor123",
+                "full_name": "Dr. Kiran Reddy",
+                "specialty": "Endocrinology",
+                "qualification": "MBBS, MD (Internal Medicine), DM (Endocrinology)",
+                "experience_years": 13,
+                "license_number": "MCI-89012345",
+                "bio": "Dr. Kiran Reddy is an endocrinologist with expertise in diabetes management, thyroid disorders, and hormonal imbalances. His evidence-based approach to complex endocrine conditions has helped thousands of patients achieve better metabolic health. Dr. Reddy is known for his thorough explanations and ability to simplify complex medical concepts for his patients.",
+                "city": "Bangalore",
+                "state": "Karnataka",
+                "country": "India",
+                "consultation_fee": 1700,
+                "available_days": "Tue,Wed,Thu,Sat",
+                "available_hours": "9:00 AM - 1:00 PM, 5:00 PM - 8:00 PM",
+                "profile_image": "/static/images/doctors/dr_reddy.jpg",
+                "is_verified": True,
+                "average_rating": 4.8,
+                "total_ratings": 198
             }
         ]
 
@@ -125,9 +217,11 @@ def create_dummy_doctors():
                     consultation_fee=doctor_data["consultation_fee"],
                     available_days=doctor_data["available_days"],
                     available_hours=doctor_data["available_hours"],
-                    profile_image=doctor_data["profile_image"],
+                    profile_image=doctor_data["username"] + ".jpg",
                     is_verified=doctor_data["is_verified"],
                     is_active=True,
+                    average_rating=doctor_data.get("average_rating", 4.5),
+                    total_ratings=doctor_data.get("total_ratings", 100),
                     created_at=datetime.utcnow()
                 )
                 db.session.add(doctor)

@@ -4,515 +4,464 @@
 
 {% block content %}
 <div class="container">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="display-5 text-teal fw-bold">Health Scanner</h1>
-            <p class="lead">Advanced health assessment using facial, tongue, eye, and skin analysis</p>
-        </div>
+    <div class="page-header">
+        <h1 class="page-title">Health Scanner</h1>
+        <p class="page-subtitle">Advanced health assessment using facial, tongue, eye, and skin analysis</p>
     </div>
 
     <!-- Scan Type Selection -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-teal text-white">
-                    <h3 class="mb-0 fs-5">Choose Scan Type</h3>
+    <div class="card animate-on-scroll">
+        <div class="card-header">
+            <h2>Choose Scan Type</h2>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-3 justify-content-center mb-4">
+                <div class="card p-3 scan-option" onclick="selectScanType('face', this)">
+                    <div class="text-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </div>
+                    <h3 class="text-center">Face Scan</h3>
+                    <p class="text-center text-light mb-0">Vital signs & cardiovascular health</p>
+                    <input type="radio" name="scanType" value="face" checked style="display: none;">
                 </div>
-                <div class="card-body">
-                    <div class="scan-type-selector">
-                        <div class="scan-type-options">
-                            <div class="form-check form-check-inline scan-option">
-                                <input class="form-check-input" type="radio" name="scanType" id="scanTypeFace" value="face" checked>
-                                <label class="form-check-label" for="scanTypeFace">
-                                    <i data-feather="user" class="scan-icon"></i>
-                                    <span>Face Scan</span>
-                                    <small>Vital signs & cardiovascular health</small>
-                                </label>
-                            </div>
-                            <div class="form-check form-check-inline scan-option">
-                                <input class="form-check-input" type="radio" name="scanType" id="scanTypeTongue" value="tongue">
-                                <label class="form-check-label" for="scanTypeTongue">
-                                    <i data-feather="trending-up" class="scan-icon"></i>
-                                    <span>Tongue Analysis</span>
-                                    <small>TCM diagnosis & vitamin deficiencies</small>
-                                </label>
-                            </div>
-                            <div class="form-check form-check-inline scan-option">
-                                <input class="form-check-input" type="radio" name="scanType" id="scanTypeEye" value="eye">
-                                <label class="form-check-label" for="scanTypeEye">
-                                    <i data-feather="eye" class="scan-icon"></i>
-                                    <span>Eye Analysis</span>
-                                    <small>Jaundice, anemia & eye conditions</small>
-                                </label>
-                            </div>
-                            <div class="form-check form-check-inline scan-option">
-                                <input class="form-check-input" type="radio" name="scanType" id="scanTypeSkin" value="skin">
-                                <label class="form-check-label" for="scanTypeSkin">
-                                    <i data-feather="grid" class="scan-icon"></i>
-                                    <span>Skin Analysis</span>
-                                    <small>Rashes, melanoma & skin conditions</small>
-                                </label>
-                            </div>
+
+                <div class="card p-3 scan-option" onclick="selectScanType('tongue', this)">
+                    <div class="text-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-trending-up"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                    </div>
+                    <h3 class="text-center">Tongue Analysis</h3>
+                    <p class="text-center text-light mb-0">TCM diagnosis & vitamin deficiencies</p>
+                    <input type="radio" name="scanType" value="tongue" style="display: none;">
+                </div>
+
+                <div class="card p-3 scan-option" onclick="selectScanType('eye', this)">
+                    <div class="text-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </div>
+                    <h3 class="text-center">Eye Analysis</h3>
+                    <p class="text-center text-light mb-0">Jaundice, anemia & eye conditions</p>
+                    <input type="radio" name="scanType" value="eye" style="display: none;">
+                </div>
+
+                <div class="card p-3 scan-option" onclick="selectScanType('skin', this)">
+                    <div class="text-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </div>
+                    <h3 class="text-center">Skin Analysis</h3>
+                    <p class="text-center text-light mb-0">Rashes, melanoma & skin conditions</p>
+                    <input type="radio" name="scanType" value="skin" style="display: none;">
+                </div>
+            </div>
+
+            <div class="scan-description mt-4">
+                <div class="scan-description-face">
+                    <h3>Face Scan</h3>
+                    <p>This scan analyzes facial blood flow patterns to estimate heart rate, blood pressure, respiratory rate, oxygen saturation, and other cardiovascular indicators. It can help detect early signs of hypertension, heart disease risks, and stress levels.</p>
+                </div>
+                <div class="scan-description-tongue" style="display: none;">
+                    <h3>Tongue Analysis</h3>
+                    <p>Based on Traditional Chinese Medicine principles, this analysis examines tongue color, coating, and shape to identify potential nutritional deficiencies, digestive issues, and overall health imbalances. It can help detect vitamin B12, iron, and other nutritional deficiencies.</p>
+                </div>
+                <div class="scan-description-eye" style="display: none;">
+                    <h3>Eye Analysis</h3>
+                    <p>This scan examines the sclera (white of eye), conjunctiva, and general eye appearance to detect signs of jaundice, anemia, allergies, and other conditions that may manifest in the eyes. Early detection of these signs can prompt proper medical follow-up.</p>
+                </div>
+                <div class="scan-description-skin" style="display: none;">
+                    <h3>Skin Analysis</h3>
+                    <p>This analysis examines skin color, texture, and lesions to detect potential skin conditions like eczema, psoriasis, and can help identify suspicious moles that might require medical attention. It also analyzes overall skin health indicators.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan Area -->
+    <div class="card mt-4 animate-on-scroll">
+        <div class="card-header">
+            <h2>Capture Image</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="scan-area">
+                        <video id="video" class="scan-preview" autoplay playsinline></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        <div class="scan-overlay">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-camera"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                            <p>Hover to capture</p>
                         </div>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2 mt-3">
+                        <button class="btn btn-primary btn-ripple" id="captureBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-camera"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                            Capture Image
+                        </button>
+                        <button class="btn btn-outline btn-ripple" id="resetBtn" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-refresh-cw"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div id="scanInstructions">
+                        <h3>Instructions</h3>
+                        <div class="scan-instructions-face">
+                            <ul class="mb-4">
+                                <li>Position your face clearly in the frame</li>
+                                <li>Ensure good lighting on your face</li>
+                                <li>Remove glasses or anything blocking your face</li>
+                                <li>Keep a neutral expression</li>
+                                <li>Stay still during the capture</li>
+                            </ul>
+                        </div>
+                        <div class="scan-instructions-tongue" style="display: none;">
+                            <ul class="mb-4">
+                                <li>Stick out your tongue toward the camera</li>
+                                <li>Ensure bright, natural lighting</li>
+                                <li>Don't consume colored foods/drinks 1 hour before</li>
+                                <li>Clean your tongue if coated with food</li>
+                                <li>Hold steady for 3 seconds during capture</li>
+                            </ul>
+                        </div>
+                        <div class="scan-instructions-eye" style="display: none;">
+                            <ul class="mb-4">
+                                <li>Position your eye clearly in the center of the frame</li>
+                                <li>Open your eye wide but naturally</li>
+                                <li>Ensure bright, natural lighting</li>
+                                <li>Remove contact lenses if possible</li>
+                                <li>Hold steady during the capture</li>
+                            </ul>
+                        </div>
+                        <div class="scan-instructions-skin" style="display: none;">
+                            <ul class="mb-4">
+                                <li>Position the skin area clearly in the frame</li>
+                                <li>Ensure bright, even lighting</li>
+                                <li>Clean the skin area if possible</li>
+                                <li>Hold the camera about 6 inches from the skin</li>
+                                <li>Capture the specific area of concern</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div id="scanStatus" class="mt-4 text-center" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <p class="mt-2">Analyzing your health data...</p>
+                        <p class="small text-light">This may take a few moments</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-6 mb-4">
-            <div class="scan-container">
-                <div class="position-relative">
-                    <video id="videoElement" autoplay muted playsinline class="w-100"></video>
-                    <canvas id="overlay" class="position-absolute top-0 start-0 w-100 h-100" style="display: none;"></canvas>
-                    <div id="loading" class="position-absolute top-0 start-0 w-100 h-100 bg-light d-flex justify-content-center align-items-center" style="display: none; opacity: 0.8;">
-                        <div class="text-center">
-                            <div class="spinner-border text-teal mb-3" role="status"></div>
-                            <p class="mb-0 fw-medium" id="loadingText">Analyzing your health metrics...</p>
+    <!-- Results Section -->
+    <div id="resultsSection" class="card mt-4 animate-on-scroll" style="display: none;">
+        <div class="card-header">
+            <h2>Health Analysis Results</h2>
+        </div>
+        <div class="card-body">
+            <div class="result-summary mb-4">
+                <h3 class="text-center mb-3">Wellness Score</h3>
+                <div class="d-flex justify-content-center mb-3">
+                    <div class="score-circle">
+                        <div class="score-value" id="wellnessScoreValue">0</div>
+                        <div class="score-label">/ 100</div>
+                    </div>
+                </div>
+                <p class="text-center" id="wellnessSummary">Your wellness score will appear here after analysis.</p>
+            </div>
+
+            <h3 class="mb-3">Health Metrics</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="scan-result">
+                        <div id="faceResultsContainer">
+                            <!-- Face scan results -->
+                            <div class="result-item">
+                                <div class="result-label">Heart Rate</div>
+                                <div class="result-value" id="heartRateValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Blood Pressure</div>
+                                <div class="result-value" id="bloodPressureValue">--/--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Oxygen Saturation</div>
+                                <div class="result-value" id="oxygenValue">--%</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Breathing Rate</div>
+                                <div class="result-value" id="breathingRateValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Stress Level</div>
+                                <div class="result-value" id="stressLevelValue">--</div>
+                            </div>
+                        </div>
+
+                        <div id="tongueResultsContainer" style="display: none;">
+                            <!-- Tongue scan results -->
+                            <div class="result-item">
+                                <div class="result-label">Tongue Color</div>
+                                <div class="result-value" id="tongueColorValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Tongue Coating</div>
+                                <div class="result-value" id="tongueCoatingValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">TCM Diagnosis</div>
+                                <div class="result-value" id="tcmDiagnosisValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Vitamin Deficiency</div>
+                                <div class="result-value" id="vitaminDeficiencyValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Infection Indicators</div>
+                                <div class="result-value" id="infectionIndicatorValue">--</div>
+                            </div>
+                        </div>
+
+                        <div id="eyeResultsContainer" style="display: none;">
+                            <!-- Eye scan results -->
+                            <div class="result-item">
+                                <div class="result-label">Sclera Color</div>
+                                <div class="result-value" id="scleraColorValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Conjunctiva Color</div>
+                                <div class="result-value" id="conjunctivaColorValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Eye Redness</div>
+                                <div class="result-value" id="eyeRednessValue">--%</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Pupil Reactivity</div>
+                                <div class="result-value" id="pupilReactivityValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Eye Condition</div>
+                                <div class="result-value" id="eyeConditionValue">--</div>
+                            </div>
+                        </div>
+
+                        <div id="skinResultsContainer" style="display: none;">
+                            <!-- Skin scan results -->
+                            <div class="result-item">
+                                <div class="result-label">Skin Condition</div>
+                                <div class="result-value" id="skinConditionValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Skin Color</div>
+                                <div class="result-value" id="skinColorValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Skin Texture</div>
+                                <div class="result-value" id="skinTextureValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Rash Detection</div>
+                                <div class="result-value" id="rashDetectionValue">--</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Rash Pattern</div>
+                                <div class="result-value" id="rashPatternValue">--</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="scan-controls">
-                    <button id="startScan" class="btn btn-teal">
-                        <i data-feather="activity" class="me-2"></i> Start Health Scan
-                    </button>
-                    <button id="captureImage" class="btn btn-outline-teal" disabled>
-                        <i data-feather="camera" class="me-2"></i> Capture
-                    </button>
-                    <button id="recordVoice" class="btn btn-outline-teal" disabled>
-                        <i data-feather="mic" class="me-2"></i> Record Voice
-                    </button>
+                <div class="col-md-6">
+                    <div class="scan-result">
+                        <h4 class="mb-3">Health Risks</h4>
+                        <div class="risk-item mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <div>Cardiovascular Risk</div>
+                                <div id="ascvdRiskValue">--%</div>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" id="ascvdRiskBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="risk-item mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <div>Hypertension Risk</div>
+                                <div id="hypertensionRiskValue">--%</div>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" id="hypertensionRiskBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="risk-item mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <div>Blood Glucose Risk</div>
+                                <div id="glucoseRiskValue">--%</div>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" id="glucoseRiskBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="risk-item mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <div>Cholesterol Risk</div>
+                                <div id="cholesterolRiskValue">--%</div>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" id="cholesterolRiskBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 text-center">
+                            <div class="d-flex justify-content-center align-items-center">
+                                <div class="text-right me-2">Biological Age:</div>
+                                <div class="fw-bold" id="biologicalAgeValue">--</div>
+                            </div>
+                            <div class="d-flex justify-content-center align-items-center">
+                                <div class="text-right me-2">Heart Age:</div>
+                                <div class="fw-bold" id="heartAgeValue">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="notes-container">
+                            <h4>Health Notes</h4>
+                            <div id="healthNotes" class="p-3 border rounded">
+                                Your health assessment notes will appear here after the scan.
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="card mb-4">
-                <div class="card-header bg-teal text-white">
-                    <h3 class="mb-0 fs-5" id="instructionsTitle">How It Works</h3>
+            
+            <div class="mt-4 text-center">
+                <div class="alert alert-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    This assessment is not a substitute for professional medical advice. Please consult a healthcare provider for proper diagnosis and treatment.
                 </div>
-                <div class="card-body">
-                    <div id="faceScanInstructions">
-                        <ol class="mb-0">
-                            <li class="mb-2">Click "Start Health Scan" to initialize your camera</li>
-                            <li class="mb-2">Position your face clearly in the frame</li>
-                            <li class="mb-2">Keep still and press "Capture" to scan your facial features</li>
-                            <li class="mb-2">Optionally record voice for enhanced analysis</li>
-                            <li>Review your cardiovascular health assessment</li>
-                        </ol>
-                    </div>
-                    <div id="tongueScanInstructions" style="display: none;">
-                        <ol class="mb-0">
-                            <li class="mb-2">Click "Start Health Scan" to initialize your camera</li>
-                            <li class="mb-2">Position your tongue clearly in the frame, open your mouth wide</li>
-                            <li class="mb-2">Ensure good lighting and press "Capture"</li>
-                            <li class="mb-2">Your tongue coating, color, and shape will be analyzed</li>
-                            <li>Review your TCM diagnosis and nutritional insights</li>
-                        </ol>
-                    </div>
-                    <div id="eyeScanInstructions" style="display: none;">
-                        <ol class="mb-0">
-                            <li class="mb-2">Click "Start Health Scan" to initialize your camera</li>
-                            <li class="mb-2">Position your eye clearly in the frame, avoid blinking</li>
-                            <li class="mb-2">Ensure good lighting and press "Capture"</li>
-                            <li class="mb-2">Your sclera, conjunctiva, and pupil reactivity will be analyzed</li>
-                            <li>Review your eye health assessment</li>
-                        </ol>
-                    </div>
-                    <div id="skinScanInstructions" style="display: none;">
-                        <ol class="mb-0">
-                            <li class="mb-2">Click "Start Health Scan" to initialize your camera</li>
-                            <li class="mb-2">Position the skin area you want to analyze in the frame</li>
-                            <li class="mb-2">Ensure good lighting and press "Capture"</li>
-                            <li class="mb-2">Your skin texture, color, and any abnormalities will be analyzed</li>
-                            <li>Review your skin health assessment</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header bg-teal text-white">
-                    <h3 class="mb-0 fs-5">Privacy Information</h3>
-                </div>
-                <div class="card-body">
-                    <p class="mb-0">All health scanning is performed securely. Your biometric data is processed only for health analysis and is not permanently stored. Results are saved to your account for historical tracking purposes.</p>
+                <div class="d-flex justify-content-center gap-2 mt-3">
+                    <button class="btn btn-outline btn-ripple" id="saveResultsBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                        Save Results
+                    </button>
+                    <button class="btn btn-primary btn-ripple" id="findDoctorBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-plus"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                        Consult a Doctor
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-lg-6">
-            <div id="results" style="display: none;">
-                <!-- Scan Results Container -->
-                <div id="faceScanResults">
-                    <!-- Wellness Score Card -->
-                    <div class="wellness-score-card mb-4">
-                        <h3 class="mb-3">Your Wellness Score</h3>
-                        <div class="score-value" id="wellnessScore">0</div>
-                        <div class="score-label" id="wellnessLabel">Calculating...</div>
-                        
-                        <div class="score-breakdown">
-                            <div class="score-item">
-                                <div class="score-item-value" id="heartAge">--</div>
-                                <div class="score-item-label">Heart Age</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-item-value" id="stressLevel">--</div>
-                                <div class="score-item-label">Stress</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-item-value" id="recoveryLevel">--</div>
-                                <div class="score-item-label">Recovery</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Vital Signs Card -->
-                    <div class="result-card mb-4">
-                        <div class="result-header">
-                            <h3 class="mb-0 fs-5">Vital Signs</h3>
-                        </div>
-                        <div class="result-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Heart Rate</div>
-                                            <div class="metric-value" id="heartRate">-- bpm</div>
-                                        </div>
-                                        <div class="metric-bar">
-                                            <div class="metric-progress" id="heartRateBar" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Blood Pressure</div>
-                                            <div class="metric-value" id="bloodPressure">--/-- mmHg</div>
-                                        </div>
-                                        <div class="metric-bar">
-                                            <div class="metric-progress" id="bloodPressureBar" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Breathing Rate</div>
-                                            <div class="metric-value" id="breathingRate">-- bpm</div>
-                                        </div>
-                                        <div class="metric-bar">
-                                            <div class="metric-progress" id="breathingRateBar" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Oxygen Saturation</div>
-                                            <div class="metric-value" id="oxygenSaturation">--%</div>
-                                        </div>
-                                        <div class="metric-bar">
-                                            <div class="metric-progress" id="oxygenSaturationBar" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Hemoglobin</div>
-                                            <div class="metric-value" id="hemoglobin">-- g/dL</div>
-                                        </div>
-                                        <div class="metric-bar">
-                                            <div class="metric-progress" id="hemoglobinBar" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">HbA1c</div>
-                                            <div class="metric-value" id="hba1c">--%</div>
-                                        </div>
-                                        <div class="metric-bar">
-                                            <div class="metric-progress" id="hba1cBar" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Health Risks Card -->
-                    <div class="result-card mb-4">
-                        <div class="result-header">
-                            <h3 class="mb-0 fs-5">Health Risk Assessment</h3>
-                        </div>
-                        <div class="result-body">
-                            <div class="health-metric">
-                                <div class="metric-header">
-                                    <div class="metric-name">Cardiovascular Risk (ASCVD)</div>
-                                    <div class="metric-value" id="ascvdRisk">--%</div>
-                                </div>
-                                <div class="metric-bar">
-                                    <div class="metric-progress risk-low" id="ascvdRiskBar" style="width: 0%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="health-metric">
-                                <div class="metric-header">
-                                    <div class="metric-name">Hypertension Risk</div>
-                                    <div class="metric-value" id="hypertensionRisk">--%</div>
-                                </div>
-                                <div class="metric-bar">
-                                    <div class="metric-progress risk-low" id="hypertensionRiskBar" style="width: 0%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="health-metric">
-                                <div class="metric-header">
-                                    <div class="metric-name">High Glucose Risk</div>
-                                    <div class="metric-value" id="glucoseRisk">--%</div>
-                                </div>
-                                <div class="metric-bar">
-                                    <div class="metric-progress risk-low" id="glucoseRiskBar" style="width: 0%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="health-metric">
-                                <div class="metric-header">
-                                    <div class="metric-name">High Cholesterol Risk</div>
-                                    <div class="metric-value" id="cholesterolRisk">--%</div>
-                                </div>
-                                <div class="metric-bar">
-                                    <div class="metric-progress risk-low" id="cholesterolRiskBar" style="width: 0%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="health-metric">
-                                <div class="metric-header">
-                                    <div class="metric-name">Tuberculosis Risk</div>
-                                    <div class="metric-value" id="tbRisk">--%</div>
-                                </div>
-                                <div class="metric-bar">
-                                    <div class="metric-progress risk-low" id="tbRiskBar" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tongue Analysis Results -->
-                <div id="tongueScanResults" style="display: none;">
-                    <div class="result-card mb-4">
-                        <div class="result-header">
-                            <h3 class="mb-0 fs-5">Tongue Analysis</h3>
-                        </div>
-                        <div class="result-body">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Tongue Color</div>
-                                            <div class="metric-value" id="tongueColor">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Tongue Coating</div>
-                                            <div class="metric-value" id="tongueCoating">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Tongue Shape</div>
-                                            <div class="metric-value" id="tongueShape">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">TCM Diagnosis</div>
-                                            <div class="metric-value" id="tcmDiagnosis">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Vitamin Deficiency</div>
-                                            <div class="metric-value" id="vitaminDeficiency">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Infection Indicator</div>
-                                            <div class="metric-value" id="infectionIndicator">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Eye Analysis Results -->
-                <div id="eyeScanResults" style="display: none;">
-                    <div class="result-card mb-4">
-                        <div class="result-header">
-                            <h3 class="mb-0 fs-5">Eye Analysis</h3>
-                        </div>
-                        <div class="result-body">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Sclera Color</div>
-                                            <div class="metric-value" id="scleraColor">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Conjunctiva Color</div>
-                                            <div class="metric-value" id="conjunctivaColor">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Eye Redness</div>
-                                            <div class="metric-value" id="eyeRedness">--%</div>
-                                        </div>
-                                        <div class="metric-bar">
-                                            <div class="metric-progress" id="eyeRednessBar" style="width: 0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Pupil Reactivity</div>
-                                            <div class="metric-value" id="pupilReactivity">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Eye Condition</div>
-                                            <div class="metric-value" id="eyeCondition">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Skin Analysis Results -->
-                <div id="skinScanResults" style="display: none;">
-                    <div class="result-card mb-4">
-                        <div class="result-header">
-                            <h3 class="mb-0 fs-5">Skin Analysis</h3>
-                        </div>
-                        <div class="result-body">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Skin Color</div>
-                                            <div class="metric-value" id="skinColor">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Skin Texture</div>
-                                            <div class="metric-value" id="skinTexture">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Rash Detection</div>
-                                            <div class="metric-value" id="rashDetection">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Rash Pattern</div>
-                                            <div class="metric-value" id="rashPattern">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="health-metric">
-                                        <div class="metric-header">
-                                            <div class="metric-name">Skin Condition</div>
-                                            <div class="metric-value" id="skinCondition">--</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recommendations Card -->
-                <div class="result-card mb-4">
-                    <div class="result-header">
-                        <h3 class="mb-0 fs-5">Recommendations</h3>
-                    </div>
-                    <div class="result-body">
-                        <div id="recommendations">
-                            <p class="text-center text-muted">Loading recommendations...</p>
-                        </div>
-                    </div>
-                </div>
+    <div class="mt-5 mb-5">
+        <div class="card animate-on-scroll">
+            <div class="card-header">
+                <h2>How It Works</h2>
             </div>
-
-            <div id="noResults" class="text-center py-5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#20c997" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-activity mb-3"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                <h3 class="text-teal mb-3">Ready for Your Health Scan</h3>
-                <p class="text-muted">Start your health scan to see your comprehensive health assessment.</p>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <h3>Face Scan Technology</h3>
+                        <p>Our facial analysis uses remote photoplethysmography (rPPG) to detect subtle color changes in your skin that correspond to your blood flow. Advanced AI algorithms process these signals to estimate heart rate, blood pressure, and other vital signs without any physical contact.</p>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <h3>Tongue Analysis</h3>
+                        <p>Based on Traditional Chinese Medicine principles and modern nutritional science, our AI evaluates your tongue's appearance to detect potential vitamin deficiencies, digestive issues, and signs of infection. The tongue often acts as a visible indicator of internal health status.</p>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <h3>Eye Analysis</h3>
+                        <p>Our eye analysis examines sclera color, conjunctiva appearance, and other eye characteristics to detect signs of jaundice, anemia, allergies, and other health conditions that may manifest in eye appearance.</p>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <h3>Skin Analysis</h3>
+                        <p>Using computer vision and dermatological AI models, our skin analysis can help identify potential skin conditions, evaluate suspicious moles for melanoma risk factors, and provide general skin health insights.</p>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <p class="text-light"><em>Note: This technology is intended for educational and preliminary screening purposes only. Always consult healthcare professionals for proper diagnosis and treatment.</em></p>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.score-value {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.score-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.scan-option {
+    cursor: pointer;
+    width: 180px;
+    transition: all 0.3s;
+}
+
+.scan-option:hover {
+    transform: translateY(-5px);
+}
+
+.scan-option.active {
+    border: 2px solid var(--primary-color);
+    background-color: rgba(23, 52, 48, 0.05);
+}
+
+.risk-item .progress-bar {
+    transition: width 1s ease-in-out;
+}
+</style>
+
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/health_scanner.js') }}"></script>
+<script>
+    // Scan type selection
+    function selectScanType(type, element) {
+        // Update radios
+        document.querySelectorAll('input[name="scanType"]').forEach(radio => {
+            radio.checked = (radio.value === type);
+        });
+        
+        // Update active class
+        document.querySelectorAll('.scan-option').forEach(option => {
+            option.classList.remove('active');
+        });
+        element.classList.add('active');
+        
+        // Show relevant instructions
+        document.querySelectorAll('[class^="scan-instructions-"]').forEach(el => {
+            el.style.display = 'none';
+        });
+        document.querySelector('.scan-instructions-' + type).style.display = 'block';
+        
+        // Show relevant description
+        document.querySelectorAll('[class^="scan-description-"]').forEach(el => {
+            el.style.display = 'none';
+        });
+        document.querySelector('.scan-description-' + type).style.display = 'block';
+    }
+
+    // Initialize with face scan selected
+    document.addEventListener('DOMContentLoaded', function() {
+        const faceOption = document.querySelector('.scan-option');
+        faceOption.classList.add('active');
+    });
+</script>
 {% endblock %}

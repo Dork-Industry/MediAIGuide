@@ -108,8 +108,8 @@ def register():
 @app.route('/')
 def home():
     # Fetch featured doctors (verified and active) to display on home page
-    featured_doctors = db.session.query(Doctor).filter_by(is_verified=True, is_active=True).order_by(Doctor.average_rating.desc()).limit(4).all()
-    return render_template('home.html', title='Medicine AI', featured_doctors=featured_doctors)
+    doctors = db.session.query(Doctor).filter_by(is_verified=True, is_active=True).order_by(Doctor.average_rating.desc()).limit(8).all()
+    return render_template('home.html', title='Medicine AI', doctors=doctors)
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
@@ -569,6 +569,7 @@ def api_food_scan():
 
 # BMI Calculator Routes
 @app.route('/bmi-calculator')
+@app.route('/bmi_calculator')  # Add this alternative route for the url_for function
 def bmi_calculator():
     """BMI calculator page"""
     return render_template('bmi_calculator.html')
