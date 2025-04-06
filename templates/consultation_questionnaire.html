@@ -18,9 +18,27 @@
                     <form method="POST" action="{{ url_for('submit_consultation') }}" enctype="multipart/form-data">
                         {{ form.hidden_tag() }}
                         
-                        <div class="progress mb-4">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    <div class="progress-container mb-5">
+                        <div class="step-progress">
+                            <div class="step-progress-bar" style="width: 0%"></div>
+                            <div class="step-item active" data-step="1">
+                                <div class="step-circle">1</div>
+                                <div class="step-title">Personal Info</div>
+                            </div>
+                            <div class="step-item" data-step="2">
+                                <div class="step-circle">2</div>
+                                <div class="step-title">Symptoms</div>
+                            </div>
+                            <div class="step-item" data-step="3">
+                                <div class="step-circle">3</div>
+                                <div class="step-title">Medical History</div>
+                            </div>
+                            <div class="step-item" data-step="4">
+                                <div class="step-circle">4</div>
+                                <div class="step-title">Documents</div>
+                            </div>
                         </div>
+                    </div>
                         
                         <!-- Step 1: Basic Information -->
                         <div class="form-step active" data-step="1">
@@ -152,12 +170,15 @@
 </div>
 {% endblock %}
 
+
+
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Form step navigation
         const formSteps = document.querySelectorAll('.form-step');
-        const progressBar = document.querySelector('.progress-bar');
+        const progressBar = document.querySelector('.step-progress-bar');
+        const stepItems = document.querySelectorAll('.step-item');
         const nextButtons = document.querySelectorAll('.next-step');
         const prevButtons = document.querySelectorAll('.prev-step');
         
@@ -180,6 +201,31 @@
             medicationsList.style.display = 'none';
         }
         
+        // Update step progress function
+        function updateStepProgress(currentStep, nextStep) {
+            // Update step items
+            stepItems.forEach(item => {
+                const itemStep = parseInt(item.dataset.step);
+                
+                // Remove all statuses
+                item.classList.remove('active', 'completed');
+                
+                // Mark completed steps
+                if (itemStep < nextStep) {
+                    item.classList.add('completed');
+                }
+                
+                // Mark active step
+                if (itemStep === nextStep) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Update progress bar width based on current progress
+            const progress = (nextStep - 1) / (formSteps.length - 1) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+        
         // Next button functionality
         nextButtons.forEach(button => {
             button.addEventListener('click', function() {
@@ -193,9 +239,11 @@
                     currentStep.classList.remove('active');
                     nextStep.classList.add('active');
                     
-                    // Update progress bar
-                    const progress = (nextStepNum - 1) / (formSteps.length - 1) * 100;
-                    progressBar.style.width = `${progress}%`;
+                    // Update progress visualization
+                    updateStepProgress(currentStepNum, nextStepNum);
+                    
+                    // Scroll to top
+                    window.scrollTo({top: 0, behavior: 'smooth'});
                 }
             });
         });
@@ -211,9 +259,11 @@
                 currentStep.classList.remove('active');
                 prevStep.classList.add('active');
                 
-                // Update progress bar
-                const progress = (prevStepNum - 1) / (formSteps.length - 1) * 100;
-                progressBar.style.width = `${progress}%`;
+                // Update progress visualization
+                updateStepProgress(currentStepNum, prevStepNum);
+                
+                // Scroll to top
+                window.scrollTo({top: 0, behavior: 'smooth'});
             });
         });
         
@@ -227,10 +277,32 @@
                 if (!field.value.trim()) {
                     isValid = false;
                     field.classList.add('is-invalid');
+                    
+                    // Add error feedback
+                    const errorFeedback = field.nextElementSibling;
+                    if (!errorFeedback || !errorFeedback.classList.contains('invalid-feedback')) {
+                        const feedback = document.createElement('div');
+                        feedback.classList.add('invalid-feedback');
+                        feedback.textContent = 'This field is required';
+                        field.parentNode.insertBefore(feedback, field.nextSibling);
+                    }
                 } else {
                     field.classList.remove('is-invalid');
+                    const errorFeedback = field.nextElementSibling;
+                    if (errorFeedback && errorFeedback.classList.contains('invalid-feedback')) {
+                        errorFeedback.remove();
+                    }
                 }
             });
+            
+            if (!isValid) {
+                // Shake the form to indicate validation error
+                const formContainer = step.closest('.card');
+                formContainer.classList.add('shake-animation');
+                setTimeout(() => {
+                    formContainer.classList.remove('shake-animation');
+                }, 500);
+            }
             
             return isValid;
         }
@@ -248,12 +320,27 @@
         display: block;
     }
     
-    .progress {
-        height: 10px;
+    .shake-animation {
+        animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    
+    @keyframes shake {
+        10%, 90% { transform: translateX(-1px); }
+        20%, 80% { transform: translateX(2px); }
+        30%, 50%, 70% { transform: translateX(-4px); }
+        40%, 60% { transform: translateX(4px); }
     }
     
     .is-invalid {
         border-color: #dc3545;
+    }
+    
+    .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
     }
 </style>
 {% endblock %}
