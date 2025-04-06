@@ -23,6 +23,7 @@ with app.app_context():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
+        logger.debug(f"User already authenticated: {current_user.username}, id: {current_user.id}, is_admin: {current_user.is_admin}")
         return redirect(url_for('home'))
         
     if request.method == 'POST':
@@ -30,16 +31,26 @@ def login():
         password = request.form.get('password')
         remember = 'remember' in request.form
         
+        logger.debug(f"Login attempt for username: {username}")
+        
         user = db.session.query(User).filter_by(username=username).first()
         
-        if not user or not user.check_password(password):
+        if not user:
+            logger.warning(f"Login failed: username {username} not found")
+            flash('Invalid username or password', 'danger')
+            return redirect(url_for('login'))
+            
+        if not user.check_password(password):
+            logger.warning(f"Login failed: incorrect password for username {username}")
             flash('Invalid username or password', 'danger')
             return redirect(url_for('login'))
             
         login_user(user, remember=remember)
+        logger.info(f"User logged in successfully: {user.username}, id: {user.id}, is_admin: {user.is_admin}")
         
         next_page = request.args.get('next')
         if next_page:
+            logger.debug(f"Redirecting to next page: {next_page}")
             return redirect(next_page)
         return redirect(url_for('home'))
         
@@ -219,7 +230,12 @@ def upgrade_subscription():
 @app.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
+    # Add debug logging to understand what's happening
+    logger.debug(f"Admin dashboard accessed by user: {current_user.username}, id: {current_user.id}, is_admin: {current_user.is_admin}")
+    
     if not current_user.is_admin:
+        logger.warning(f"Non-admin user {current_user.username} attempted to access admin dashboard")
+        flash("You don't have permission to access the admin dashboard.", "danger")
         abort(403)
         
     # Get user and subscription stats
@@ -236,6 +252,8 @@ def admin_dashboard():
     
     this_month = datetime.utcnow().replace(day=1)
     searches_this_month = db.session.query(SearchHistory).filter(SearchHistory.timestamp >= this_month).count()
+    
+    logger.debug(f"Admin dashboard data loaded successfully for user: {current_user.username}")
     
     return render_template('admin_dashboard.html',
                           title='Admin Dashboard',
@@ -302,6 +320,42 @@ def admin_user_detail(user_id):
                           title=f'User: {user.username}',
                           user=user,
                           search_history=search_history)
+
+# Admin Debug Page
+@app.route('/admin/check')
+@login_required
+def admin_check():
+    # Check if user is admin in the database directly
+    user_id = current_user.id
+    db_user = db.session.get(User, user_id)
+    db_admin_status = db_user.is_admin if db_user else False
+    
+    # Option to fix admin privileges if there's a mismatch
+    update_admin_privilege = db_admin_status != current_user.is_admin
+    
+    logger.debug(f"Admin check page: User {current_user.username}, session admin: {current_user.is_admin}, db admin: {db_admin_status}")
+    
+    return render_template('admin_check.html', 
+                          title='Admin Check',
+                          db_admin_status=db_admin_status,
+                          update_admin_privilege=update_admin_privilege)
+
+@app.route('/admin/fix-privilege')
+@login_required
+def fix_admin_privilege():
+    user_id = current_user.id
+    db_user = db.session.get(User, user_id)
+    
+    if db_user and db_user.is_admin:
+        # Force refresh the session with correct admin status
+        login_user(db_user)
+        flash('Admin privileges have been refreshed.', 'success')
+        logger.info(f"Fixed admin privileges for user: {current_user.username}")
+    else:
+        flash('You do not have admin privileges in the database.', 'danger')
+        logger.warning(f"Attempted to fix admin privileges for non-admin user: {current_user.username}")
+    
+    return redirect(url_for('admin_check'))
 
 # Error handlers
 @app.errorhandler(404)

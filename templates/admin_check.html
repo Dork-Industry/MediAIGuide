@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-teal text-white">
+        <h2>Admin Access Check</h2>
+    </div>
+    <div class="card-body">
+        <h3>Your Account Information:</h3>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <tr>
+                    <th>Username:</th>
+                    <td>{{ current_user.username }}</td>
+                </tr>
+                <tr>
+                    <th>User ID:</th>
+                    <td>{{ current_user.id }}</td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td>{{ current_user.email }}</td>
+                </tr>
+                <tr>
+                    <th>Admin Status:</th>
+                    <td>
+                        {% if current_user.is_admin %}
+                            <span class="badge bg-success">YES</span>
+                        {% else %}
+                            <span class="badge bg-danger">NO</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Admin In Database:</th>
+                    <td>
+                        {% if db_admin_status %}
+                            <span class="badge bg-success">YES</span>
+                        {% else %}
+                            <span class="badge bg-danger">NO</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="mt-4">
+            <h3>Troubleshooting Options:</h3>
+            <div class="list-group">
+                <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Try Admin Dashboard</h5>
+                    </div>
+                    <p class="mb-1">Attempt to access the admin dashboard</p>
+                </a>
+                <a href="{{ url_for('logout') }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Logout</h5>
+                    </div>
+                    <p class="mb-1">Log out and try again with admin credentials</p>
+                </a>
+                {% if update_admin_privilege %}
+                <a href="{{ url_for('fix_admin_privilege') }}" class="list-group-item list-group-item-action bg-warning">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Fix Admin Privilege</h5>
+                    </div>
+                    <p class="mb-1">Update your admin privilege in the database and refresh the session</p>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
