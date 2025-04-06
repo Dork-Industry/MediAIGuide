@@ -13,33 +13,70 @@
                 <div class="text-center mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 </div>
-                <form method="POST" action="{{ url_for('login') }}">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i data-feather="user"></i>
-                            </span>
-                            <input type="text" class="form-control" id="username" name="username" required>
-                        </div>
+                
+                <!-- Login Tabs -->
+                <ul class="nav nav-tabs nav-fill mb-4" id="loginTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="password-tab" data-bs-toggle="tab" data-bs-target="#password-login" type="button" role="tab">Password Login</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="otp-tab" data-bs-toggle="tab" data-bs-target="#otp-login" type="button" role="tab">OTP Login</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="loginTabsContent">
+                    <!-- Password Login Tab -->
+                    <div class="tab-pane fade show active" id="password-login" role="tabpanel">
+                        <form method="POST" action="{{ url_for('login') }}">
+                            <input type="hidden" name="login_type" value="password">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i data-feather="user"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i data-feather="lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                </div>
+                            </div>
+                            <div class="mb-4 form-check">
+                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                <label class="form-check-label" for="remember">Remember me</label>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-teal btn-lg">Login</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="mb-4">
-                        <label for="password" class="form-label">Password</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i data-feather="lock"></i>
-                            </span>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
+                    
+                    <!-- OTP Login Tab -->
+                    <div class="tab-pane fade" id="otp-login" role="tabpanel">
+                        <form method="POST" action="{{ url_for('login') }}">
+                            <input type="hidden" name="login_type" value="otp_request">
+                            <div class="mb-4">
+                                <label for="email" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i data-feather="mail"></i>
+                                    </span>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="form-text">We'll send a one-time password to your email.</div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-teal btn-lg">Request OTP</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="mb-4 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                        <label class="form-check-label" for="remember">Remember me</label>
-                    </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-teal btn-lg">Login</button>
-                    </div>
-                </form>
+                </div>
             </div>
             <div class="card-footer text-center py-3">
                 <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
@@ -47,4 +84,25 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+        
+        // Activate tabs if query parameter is present
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('tab') && urlParams.get('tab') === 'otp') {
+            const otpTab = document.getElementById('otp-tab');
+            if (otpTab) {
+                const tabInstance = new bootstrap.Tab(otpTab);
+                tabInstance.show();
+            }
+        }
+    });
+</script>
 {% endblock %}

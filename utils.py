@@ -320,6 +320,10 @@ def check_multiple_drug_interactions(medications, user=None):
             interactions.append(interaction)
             
             # Update highest severity and interaction flag
+            # Check if interaction is None before accessing its attributes
+            if interaction is None:
+                continue
+                
             severity = interaction.get("severity", "unknown").lower()
             severity_rank = severity_map.get(severity, 0)
             

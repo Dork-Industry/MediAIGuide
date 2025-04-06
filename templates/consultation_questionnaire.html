@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Online Consultation Questionnaire{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Online Consultation Questionnaire</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> Please fill out this questionnaire with your health concerns. Our system will match you with the most appropriate specialist.
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('submit_consultation') }}" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="progress mb-4">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        
+                        <!-- Step 1: Basic Information -->
+                        <div class="form-step active" data-step="1">
+                            <h3 class="h5 mb-3">Step 1: Basic Information</h3>
+                            
+                            <div class="mb-3">
+                                <label for="full_name" class="form-label">Full Name*</label>
+                                {{ form.full_name(class="form-control", placeholder="Enter your full name") }}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="age" class="form-label">Age*</label>
+                                    {{ form.age(class="form-control", placeholder="Your age") }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="gender" class="form-label">Gender*</label>
+                                    {{ form.gender(class="form-select") }}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Address*</label>
+                                {{ form.address(class="form-control", placeholder="Your current address") }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number*</label>
+                                {{ form.phone(class="form-control", placeholder="Your contact number") }}
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary next-step">Next <i class="fas fa-arrow-right ms-1"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Medical Concerns -->
+                        <div class="form-step" data-step="2">
+                            <h3 class="h5 mb-3">Step 2: Health Concerns</h3>
+                            
+                            <div class="mb-3">
+                                <label for="main_problem" class="form-label">What is your main health concern?*</label>
+                                {{ form.main_problem(class="form-control", placeholder="Describe your main health problem") }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="symptoms" class="form-label">What symptoms are you experiencing?*</label>
+                                {{ form.symptoms(class="form-control", placeholder="List all symptoms you are experiencing") }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="duration" class="form-label">How long have you been experiencing these symptoms?*</label>
+                                {{ form.duration(class="form-select") }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="severity" class="form-label">How would you rate the severity of your symptoms?*</label>
+                                {{ form.severity(class="form-select") }}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary prev-step"><i class="fas fa-arrow-left me-1"></i> Previous</button>
+                                <button type="button" class="btn btn-primary next-step">Next <i class="fas fa-arrow-right ms-1"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Additional Information -->
+                        <div class="form-step" data-step="3">
+                            <h3 class="h5 mb-3">Step 3: Additional Information</h3>
+                            
+                            <div class="mb-3">
+                                <label for="taking_medications" class="form-label">Are you currently taking any medications?*</label>
+                                {{ form.taking_medications(class="form-select") }}
+                            </div>
+                            
+                            <div class="mb-3 medications-list">
+                                <label for="current_medications" class="form-label">Please list all medications you are currently taking</label>
+                                {{ form.current_medications(class="form-control", placeholder="Enter names of all medications you are taking") }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="medical_history" class="form-label">Do you have any relevant medical history?</label>
+                                {{ form.medical_history(class="form-control", placeholder="Any prior conditions, surgeries, or family medical history") }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="allergies" class="form-label">Do you have any allergies?</label>
+                                {{ form.allergies(class="form-control", placeholder="List any allergies to medications or substances") }}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary prev-step"><i class="fas fa-arrow-left me-1"></i> Previous</button>
+                                <button type="button" class="btn btn-primary next-step">Next <i class="fas fa-arrow-right ms-1"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 4: Documents Upload -->
+                        <div class="form-step" data-step="4">
+                            <h3 class="h5 mb-3">Step 4: Required Documents</h3>
+                            
+                            <div class="mb-3">
+                                <label for="previous_prescription" class="form-label">Previous Prescription (if any)</label>
+                                {{ form.previous_prescription(class="form-control") }}
+                                <div class="form-text">Upload a photo or scan of any previous prescriptions related to this condition.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="test_reports" class="form-label">Medical Test Reports (if any)</label>
+                                {{ form.test_reports(class="form-control") }}
+                                <div class="form-text">Upload any relevant test reports or medical documents.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_proof" class="form-label">Government ID Proof*</label>
+                                {{ form.id_proof(class="form-control") }}
+                                <div class="form-text">Please upload a valid government ID proof. This is required for medical consultation.</div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary prev-step"><i class="fas fa-arrow-left me-1"></i> Previous</button>
+                                <button type="submit" class="btn btn-success"><i class="fas fa-check-circle me-1"></i> Submit Consultation Request</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form step navigation
+        const formSteps = document.querySelectorAll('.form-step');
+        const progressBar = document.querySelector('.progress-bar');
+        const nextButtons = document.querySelectorAll('.next-step');
+        const prevButtons = document.querySelectorAll('.prev-step');
+        
+        // Show/hide medication list based on selection
+        const medicationSelect = document.querySelector('#taking_medications');
+        const medicationsList = document.querySelector('.medications-list');
+        
+        if (medicationSelect) {
+            medicationSelect.addEventListener('change', function() {
+                if (this.value === 'yes') {
+                    medicationsList.style.display = 'block';
+                } else {
+                    medicationsList.style.display = 'none';
+                }
+            });
+        }
+        
+        // Initially hide medications list
+        if (medicationsList) {
+            medicationsList.style.display = 'none';
+        }
+        
+        // Next button functionality
+        nextButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const currentStep = this.closest('.form-step');
+                const currentStepNum = parseInt(currentStep.dataset.step);
+                const nextStepNum = currentStepNum + 1;
+                const nextStep = document.querySelector(`.form-step[data-step="${nextStepNum}"]`);
+                
+                // Validate current step
+                if (validateStep(currentStepNum)) {
+                    currentStep.classList.remove('active');
+                    nextStep.classList.add('active');
+                    
+                    // Update progress bar
+                    const progress = (nextStepNum - 1) / (formSteps.length - 1) * 100;
+                    progressBar.style.width = `${progress}%`;
+                }
+            });
+        });
+        
+        // Previous button functionality
+        prevButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const currentStep = this.closest('.form-step');
+                const currentStepNum = parseInt(currentStep.dataset.step);
+                const prevStepNum = currentStepNum - 1;
+                const prevStep = document.querySelector(`.form-step[data-step="${prevStepNum}"]`);
+                
+                currentStep.classList.remove('active');
+                prevStep.classList.add('active');
+                
+                // Update progress bar
+                const progress = (prevStepNum - 1) / (formSteps.length - 1) * 100;
+                progressBar.style.width = `${progress}%`;
+            });
+        });
+        
+        // Validate each step
+        function validateStep(stepNum) {
+            const step = document.querySelector(`.form-step[data-step="${stepNum}"]`);
+            const requiredFields = step.querySelectorAll('input[required], select[required], textarea[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            return isValid;
+        }
+    });
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .form-step {
+        display: none;
+    }
+    
+    .form-step.active {
+        display: block;
+    }
+    
+    .progress {
+        height: 10px;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+</style>
+{% endblock %}

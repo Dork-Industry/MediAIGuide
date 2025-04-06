@@ -1,15 +1,16 @@
 import json
 import os
 import time
-from flask import render_template, request, redirect, url_for, flash, jsonify, abort
+from flask import render_template, request, redirect, url_for, flash, jsonify, abort, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, DateField, BooleanField, SelectField
-from wtforms.validators import DataRequired, Length, Optional
+from wtforms import StringField, TextAreaField, DateField, BooleanField, SelectField, FileField, IntegerField, PasswordField, EmailField
+from wtforms.validators import DataRequired, Length, Optional, Email, ValidationError, NumberRange, EqualTo
 from app import app, db
 from models import User, Subscription, SearchHistory, MedicineCache, HealthScan, FoodScan, BMIRecord, Reminder, Doctor, Appointment, DoctorReview, Message, UserMedication, DrugInteractionCheck
 from utils import get_medicine_info, init_admin_account, record_search, analyze_health_data, analyze_food_image, generate_diet_plan, check_drug_interaction, check_multiple_drug_interactions
+from utils_mail import generate_otp, send_otp_email
 from datetime import datetime, timedelta
 import logging
 
@@ -32,34 +33,145 @@ def login():
         return redirect(url_for('home'))
         
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        remember = 'remember' in request.form
+        login_type = request.form.get('login_type', 'password')
         
-        logger.debug(f"Login attempt for username: {username}")
-        
-        user = db.session.query(User).filter_by(username=username).first()
-        
-        if not user:
-            logger.warning(f"Login failed: username {username} not found")
-            flash('Invalid username or password', 'danger')
-            return redirect(url_for('login'))
+        if login_type == 'password':
+            username = request.form.get('username')
+            password = request.form.get('password')
+            remember = 'remember' in request.form
             
-        if not user.check_password(password):
-            logger.warning(f"Login failed: incorrect password for username {username}")
-            flash('Invalid username or password', 'danger')
-            return redirect(url_for('login'))
+            logger.debug(f"Password login attempt for username: {username}")
             
-        login_user(user, remember=remember)
-        logger.info(f"User logged in successfully: {user.username}, id: {user.id}, is_admin: {user.is_admin}")
-        
-        next_page = request.args.get('next')
-        if next_page:
-            logger.debug(f"Redirecting to next page: {next_page}")
-            return redirect(next_page)
-        return redirect(url_for('home'))
+            user = db.session.query(User).filter_by(username=username).first()
+            
+            if not user:
+                logger.warning(f"Login failed: username {username} not found")
+                flash('Invalid username or password', 'danger')
+                return redirect(url_for('login'))
+                
+            if not user.check_password(password):
+                logger.warning(f"Login failed: incorrect password for username {username}")
+                flash('Invalid username or password', 'danger')
+                return redirect(url_for('login'))
+                
+            login_user(user, remember=remember)
+            logger.info(f"User logged in successfully: {user.username}, id: {user.id}, is_admin: {user.is_admin}")
+            
+            next_page = request.args.get('next')
+            if next_page:
+                logger.debug(f"Redirecting to next page: {next_page}")
+                return redirect(next_page)
+            return redirect(url_for('home'))
+            
+        elif login_type == 'otp_request':
+            email = request.form.get('email')
+            
+            if not email:
+                flash('Email is required', 'danger')
+                return redirect(url_for('login'))
+                
+            user = db.session.query(User).filter_by(email=email).first()
+            
+            if not user:
+                # Don't reveal that the email is not registered
+                flash('If the email exists, an OTP has been sent. Please check your inbox.', 'info')
+                return redirect(url_for('login'))
+                
+            # Generate and save OTP
+            otp = generate_otp()
+            user.set_otp(otp)
+            db.session.commit()
+            
+            # Send OTP via email
+            sent = send_otp_email(user.email, otp)
+            
+            if sent:
+                logger.info(f"OTP sent to {user.email}")
+                flash('An OTP has been sent to your email. Valid for 10 minutes.', 'success')
+                # Store email in session for OTP verification
+                session['otp_email'] = user.email
+                return redirect(url_for('verify_otp'))
+            else:
+                logger.error(f"Failed to send OTP to {user.email}")
+                flash('Failed to send OTP. Please try again later.', 'danger')
+                return redirect(url_for('login'))
+                
+        elif login_type == 'otp_verify':
+            otp = request.form.get('otp')
+            email = session.get('otp_email')
+            
+            if not email:
+                flash('Session expired. Please request a new OTP.', 'danger')
+                return redirect(url_for('login'))
+                
+            user = db.session.query(User).filter_by(email=email).first()
+            
+            if not user:
+                flash('Invalid session. Please request a new OTP.', 'danger')
+                return redirect(url_for('login'))
+                
+            if user.verify_otp(otp):
+                # OTP verified successfully, log in the user
+                login_user(user, remember=True)
+                # Clear OTP-related session data
+                session.pop('otp_email', None)
+                
+                logger.info(f"User logged in via OTP: {user.username}, id: {user.id}")
+                flash('Login successful!', 'success')
+                
+                next_page = request.args.get('next')
+                if next_page:
+                    return redirect(next_page)
+                return redirect(url_for('home'))
+            else:
+                flash('Invalid or expired OTP. Please try again.', 'danger')
+                return redirect(url_for('verify_otp'))
         
     return render_template('login.html', title='Login')
+
+@app.route('/verify-otp', methods=['GET', 'POST'])
+def verify_otp():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+        
+    # Check if we have an email in session
+    email = session.get('otp_email')
+    if not email:
+        flash('Session expired or invalid. Please request a new OTP.', 'danger')
+        return redirect(url_for('login'))
+        
+    if request.method == 'POST':
+        otp = request.form.get('otp')
+        if not otp:
+            flash('Please enter the OTP sent to your email.', 'danger')
+            return redirect(url_for('verify_otp'))
+            
+        user = db.session.query(User).filter_by(email=email).first()
+        if not user:
+            flash('Invalid session. Please request a new OTP.', 'danger')
+            return redirect(url_for('login'))
+            
+        if user.verify_otp(otp):
+            # OTP verified successfully, log in the user
+            login_user(user, remember=True)
+            # Clear OTP-related session data
+            session.pop('otp_email', None)
+            
+            logger.info(f"User logged in via OTP: {user.username}, id: {user.id}")
+            flash('Login successful!', 'success')
+            
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+            return redirect(url_for('home'))
+        else:
+            flash('Invalid or expired OTP. Please try again.', 'danger')
+            return redirect(url_for('verify_otp'))
+            
+    # Email is partially masked for security
+    masked_email = email[:3] + '***' + email[email.index('@')-2:]
+    
+    return render_template('verify_otp.html', title='Verify OTP', masked_email=masked_email)
 
 @app.route('/logout')
 @login_required
@@ -114,6 +226,109 @@ def home():
     # Fetch featured doctors (verified and active) to display on home page
     doctors = db.session.query(Doctor).filter_by(is_verified=True, is_active=True).order_by(Doctor.average_rating.desc()).limit(8).all()
     return render_template('home.html', title='Medicine AI', doctors=doctors)
+
+@app.route('/consultation-questionnaire', methods=['GET', 'POST'])
+@login_required
+def consultation_questionnaire():
+    """Online consultation questionnaire for symptom-based specialist routing"""
+    form = ConsultationForm()
+    
+    if request.method == 'POST' and form.validate_on_submit():
+        # Process the form data
+        try:
+            # Create directory for uploads if it doesn't exist
+            import os
+            upload_dir = os.path.join('static', 'uploads', 'consultations', str(current_user.id))
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            # Process file uploads
+            files = {}
+            
+            # Handle previous prescription file
+            if form.previous_prescription.data:
+                import time
+                timestamp = int(time.time())
+                filename = f"prescription_{current_user.id}_{timestamp}.jpg"
+                filepath = os.path.join(upload_dir, filename)
+                form.previous_prescription.data.save(filepath)
+                files['previous_prescription'] = filepath
+                
+            # Handle test reports file
+            if form.test_reports.data:
+                import time
+                timestamp = int(time.time())
+                filename = f"tests_{current_user.id}_{timestamp}.jpg"
+                filepath = os.path.join(upload_dir, filename)
+                form.test_reports.data.save(filepath)
+                files['test_reports'] = filepath
+                
+            # Handle ID proof file
+            if form.id_proof.data:
+                import time
+                timestamp = int(time.time())
+                filename = f"id_{current_user.id}_{timestamp}.jpg"
+                filepath = os.path.join(upload_dir, filename)
+                form.id_proof.data.save(filepath)
+                files['id_proof'] = filepath
+                
+            # Match with appropriate doctor specialty based on symptoms and main problem
+            # This could be enhanced with AI-based matching in the future
+            main_problem = form.main_problem.data.lower()
+            symptoms = form.symptoms.data.lower()
+            
+            specialty_keywords = {
+                'cardiology': ['heart', 'chest pain', 'palpitations', 'high blood pressure', 'hypertension'],
+                'dermatology': ['skin', 'rash', 'acne', 'itching', 'eczema'],
+                'gastroenterology': ['stomach', 'abdomen', 'diarrhea', 'constipation', 'nausea'],
+                'neurology': ['headache', 'migraine', 'dizziness', 'numbness', 'seizure'],
+                'orthopedics': ['bone', 'joint', 'fracture', 'sprain', 'knee', 'shoulder'],
+                'psychiatry': ['anxiety', 'depression', 'stress', 'sleep', 'mood'],
+                'pulmonology': ['lung', 'breathing', 'cough', 'wheezing', 'breath'],
+                'general medicine': []  # Default category
+            }
+            
+            # Find matching specialty
+            matched_specialty = 'general medicine'
+            max_matches = 0
+            
+            for specialty, keywords in specialty_keywords.items():
+                matches = 0
+                for keyword in keywords:
+                    if keyword in main_problem or keyword in symptoms:
+                        matches += 1
+                if matches > max_matches:
+                    max_matches = matches
+                    matched_specialty = specialty
+            
+            # Find doctors with matching specialty
+            doctors = db.session.query(Doctor) \
+                .filter_by(is_verified=True, is_active=True) \
+                .filter(Doctor.specialty.ilike(f'%{matched_specialty}%')) \
+                .order_by(Doctor.average_rating.desc()) \
+                .limit(3).all()
+            
+            # Store consultation data in session for confirmation page
+            session['consultation_data'] = {
+                'full_name': form.full_name.data,
+                'age': form.age.data,
+                'gender': form.gender.data,
+                'main_problem': form.main_problem.data,
+                'matched_specialty': matched_specialty,
+                'matched_doctors': [{'id': d.id, 'name': d.full_name, 'specialty': d.specialty} for d in doctors]
+            }
+            
+            flash('Your consultation questionnaire has been submitted successfully!', 'success')
+            return render_template('consultation_confirmation.html', 
+                                 specialty=matched_specialty, 
+                                 doctors=doctors)
+            
+        except Exception as e:
+            flash(f'Error processing your consultation: {str(e)}', 'danger')
+            return redirect(url_for('consultation_questionnaire'))
+    
+    return render_template('consultation_questionnaire.html', 
+                          title='Online Consultation', 
+                          form=form)
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
@@ -404,6 +619,42 @@ def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
 
+
+# Consultation Questionnaire Form
+class ConsultationForm(FlaskForm):
+    # Step 1: Basic Information
+    full_name = StringField('Full Name', validators=[DataRequired(), Length(max=100)])
+    age = IntegerField('Age', validators=[DataRequired(), NumberRange(min=1, max=120)])
+    gender = SelectField('Gender', choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')])
+    address = TextAreaField('Address', validators=[DataRequired(), Length(max=200)])
+    phone = StringField('Phone Number', validators=[DataRequired(), Length(max=20)])
+    
+    # Step 2: Health Concerns
+    main_problem = TextAreaField('Main Health Concern', validators=[DataRequired()])
+    symptoms = TextAreaField('Symptoms', validators=[DataRequired()])
+    duration = SelectField('Duration', choices=[
+        ('hours', 'Hours'), 
+        ('days', 'Days'), 
+        ('weeks', 'Weeks'), 
+        ('months', 'Months'),
+        ('years', 'Years')
+    ])
+    severity = SelectField('Severity', choices=[
+        ('mild', 'Mild'), 
+        ('moderate', 'Moderate'), 
+        ('severe', 'Severe')
+    ])
+    
+    # Step 3: Additional Information
+    taking_medications = SelectField('Taking Medications', choices=[('yes', 'Yes'), ('no', 'No')])
+    current_medications = TextAreaField('Current Medications', validators=[Optional()])
+    medical_history = TextAreaField('Medical History', validators=[Optional()])
+    allergies = TextAreaField('Allergies', validators=[Optional()])
+    
+    # Step 4: Documents
+    previous_prescription = FileField('Previous Prescription', validators=[Optional()])
+    test_reports = FileField('Test Reports', validators=[Optional()])
+    id_proof = FileField('ID Proof', validators=[DataRequired()])
 
 # Form classes for Drug Interaction Checker
 class DrugInteractionForm(FlaskForm):

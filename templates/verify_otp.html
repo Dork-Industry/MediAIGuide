@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Verify OTP - Medicine AI{% endblock %}
+
+{% block content %}
+<div class="row mt-5">
+    <div class="col-md-6 offset-md-3">
+        <div class="card shadow">
+            <div class="card-header bg-teal text-white">
+                <h3 class="mb-0">Verify OTP</h3>
+            </div>
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                
+                <div class="alert alert-info">
+                    <small><i data-feather="info" class="me-1"></i> One-Time Password has been sent to <strong>{{ masked_email }}</strong></small>
+                </div>
+                
+                <form method="POST" action="{{ url_for('verify_otp') }}">
+                    <div class="mb-4">
+                        <label for="otp" class="form-label">Enter 6-digit OTP</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i data-feather="key"></i>
+                            </span>
+                            <input type="text" class="form-control form-control-lg text-center" id="otp" name="otp" 
+                                   maxlength="6" minlength="6" placeholder="Enter OTP" required
+                                   pattern="[0-9]{6}" inputmode="numeric">
+                        </div>
+                        <div class="form-text">The OTP is valid for 10 minutes.</div>
+                    </div>
+                    
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-teal btn-lg">Verify OTP</button>
+                    </div>
+                    
+                    <div class="text-center" id="countdownContainer">
+                        <p>Resend OTP in <span id="countdown">05:00</span></p>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center py-3">
+                <p class="mb-0"><a href="{{ url_for('login') }}">Back to Login</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+        
+        // Auto-focus OTP field
+        document.getElementById('otp').focus();
+        
+        // OTP input formatting
+        document.getElementById('otp').addEventListener('input', function(e) {
+            // Remove non-numeric characters
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        // Countdown timer for resend
+        const countdownEl = document.getElementById('countdown');
+        let timeLeft = 300; // 5 minutes in seconds
+        
+        const countdownTimer = setInterval(function() {
+            timeLeft--;
+            
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            
+            // Format with leading zeros
+            countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdownTimer);
+                document.getElementById('countdownContainer').innerHTML = 
+                    '<a href="{{ url_for("login") }}?tab=otp" class="btn btn-outline-primary btn-sm">Resend OTP</a>';
+            }
+        }, 1000);
+    });
+</script>
+{% endblock %}

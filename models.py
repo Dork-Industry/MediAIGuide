@@ -1,6 +1,6 @@
 from app import db, login_manager
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
 import sqlalchemy.sql.functions as db_func
@@ -18,6 +18,11 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # OTP fields
+    otp = db.Column(db.String(6), nullable=True)
+    otp_generated_at = db.Column(db.DateTime, nullable=True)
+    otp_verified = db.Column(db.Boolean, default=False)
     
     # User profile fields
     full_name = db.Column(db.String(100), nullable=True)
@@ -73,6 +78,29 @@ class User(UserMixin, db.Model):
     def get_display_name(self):
         """Get user's display name, preferring full name if available"""
         return self.full_name if self.full_name else self.username
+        
+    def set_otp(self, otp):
+        """Set the OTP and its generation timestamp"""
+        self.otp = otp
+        self.otp_generated_at = datetime.utcnow()
+        self.otp_verified = False
+        
+    def verify_otp(self, otp):
+        """Verify the OTP is correct and not expired"""
+        if not self.otp or not self.otp_generated_at:
+            return False
+            
+        # Check if OTP is expired (10 minutes)
+        expiry_time = self.otp_generated_at + timedelta(minutes=10)
+        if datetime.utcnow() > expiry_time:
+            return False
+            
+        # Check if OTP matches
+        if self.otp == otp:
+            self.otp_verified = True
+            return True
+            
+        return False
 
 
 class Subscription(db.Model):

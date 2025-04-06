@@ -17,44 +17,22 @@
     </div>
 </div>
 
-<!-- Consultation Card -->
-<div class="container mt-3">
-    <div class="card animate-on-scroll consultation-card shadow-hover">
-        <div class="card-body p-4">
-            <div class="row align-items-center">
-                <div class="col-md-2 text-center mb-3 mb-md-0">
-                    <div class="icon-pulse-animation">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#173430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-activity"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                    </div>
-                </div>
-                <div class="col-md-7 mb-3 mb-md-0">
-                    <h3 class="text-primary">How are you feeling today? Sick? Consult Now!</h3>
-                    <p>Take our online consultation questionnaire and we'll connect you with the right specialist based on your symptoms.</p>
-                </div>
-                <div class="col-md-3 text-center text-md-end">
-                    <a href="{{ url_for('consultation_questionnaire') }}" class="btn btn-primary btn-lg btn-ripple">Start Consultation</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Drug Interaction Checker Card -->
 <div class="container mt-3">
-    <div class="card animate-on-scroll drug-interactions-card shadow-hover">
-        <div class="card-body p-4">
+    <div class="card animate-on-scroll drug-interactions-card">
+        <div class="card-body">
             <div class="row align-items-center">
                 <div class="col-md-2 text-center mb-3 mb-md-0">
                     <div class="pill-animation">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#173430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#173430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle animate-pulse"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                     </div>
                 </div>
                 <div class="col-md-7 mb-3 mb-md-0">
-                    <h3 class="text-warning">Check Drug Interactions</h3>
-                    <p>Ensure your medications are safe to take together. Our advanced AI checks for potential dangerous drug interactions.</p>
+                    <h3>How are you feeling today sick! Consult Now</h3>
+                    <p>Take our online consultation questionnaire and we'll connect you with the right specialist based on your symptoms.</p>
                 </div>
                 <div class="col-md-3 text-center text-md-end">
-                    <a href="{{ url_for('drug_interactions') }}" class="btn btn-warning text-dark btn-lg btn-ripple">Check Medications</a>
+                    <a href="{{ url_for('drug_interactions') }}" class="btn btn-accent btn-lg btn-ripple">Start Consultation</a>
                 </div>
             </div>
         </div>
@@ -306,50 +284,20 @@
         </div>
     </div>
 </div>
+
+<!-- Medical Disclaimer -->
+<div class="container mt-5 mb-5">
+    <div class="card animate-on-scroll">
+        <div class="card-header">
+            <h3>Medical Disclaimer</h3>
+        </div>
+        <div class="card-body">
+            <p>The information provided by Medicine AI is for informational purposes only and is not intended as a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition or medication.</p>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
-{% block styles %}
-<style>
-    .pill-animation svg {
-        animation: pulse 2s infinite;
-    }
-    
-    .icon-pulse-animation svg {
-        animation: pulse 1.5s infinite;
-    }
-    
-    @keyframes pulse {
-        0% {
-            transform: scale(0.95);
-            opacity: 0.8;
-        }
-        50% {
-            transform: scale(1.05);
-            opacity: 1;
-        }
-        100% {
-            transform: scale(0.95);
-            opacity: 0.8;
-        }
-    }
-    
-    .shadow-hover {
-        transition: all 0.3s ease;
-    }
-    
-    .shadow-hover:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    }
-    
-    .consultation-card {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-left: 5px solid #173430;
-    }
-    
-    .drug-interactions-card {
-        background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
-        border-left: 5px solid #ff9800;
-    }
-</style>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
 {% endblock %}
