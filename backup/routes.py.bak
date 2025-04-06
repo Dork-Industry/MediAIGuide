@@ -1,6 +1,5 @@
 import json
 import os
-import time
 from flask import render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -389,14 +388,9 @@ def api_health_scan():
     if current_user.get_remaining_searches() <= 0:
         return jsonify({"error": "You have reached your search limit. Please upgrade your subscription."}), 403
     
-    # Handle both JSON and form data requests
-    if request.is_json:
-        data = request.get_json()
-        scan_type = data.get('scan_type', 'face')
-        image_data = data.get('image_data') # Base64 encoded image
-    else:
-        scan_type = request.form.get('scan_type', 'face')
-        image_data = request.form.get('image_data') # Base64 encoded image
+    data = request.get_json()
+    scan_type = data.get('scan_type', 'face')
+    image_data = data.get('image_data') # Base64 encoded image
     
     # Validate scan type
     valid_scan_types = ['face', 'tongue', 'eye', 'skin']
@@ -423,10 +417,6 @@ def api_health_scan():
         temp_image_path = os.path.join(temp_dir, f"scan_{current_user.id}.jpg")
         
         try:
-            # Extract base64 data if it includes the data URL prefix
-            if image_data and ',' in image_data:
-                image_data = image_data.split(',', 1)[1]
-                
             with open(temp_image_path, "wb") as f:
                 f.write(base64.b64decode(image_data))
             
@@ -1275,7 +1265,7 @@ def messages():
 @app.route('/messages/send/<int:recipient_id>', methods=['GET', 'POST'])
 @login_required
 def send_message(recipient_id):
-    """Send a message to a user with optional file attachment"""
+    """Send a message to a user"""
     recipient = db.session.query(User).filter_by(id=recipient_id).first_or_404()
     
     if request.method == 'POST':
@@ -1285,58 +1275,10 @@ def send_message(recipient_id):
             flash('Message cannot be empty.', 'danger')
             return redirect(url_for('send_message', recipient_id=recipient_id))
         
-        # Initialize attachment variables
-        attachment_path = None
-        attachment_type = None
-        attachment_filename = None
-        
-        # Check if there's a file attachment
-        if 'attachment' in request.files and request.files['attachment'].filename:
-            attachment = request.files['attachment']
-            
-            # Make sure the file has a valid extension
-            allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'txt'}
-            file_ext = attachment.filename.rsplit('.', 1)[1].lower() if '.' in attachment.filename else ''
-            
-            if file_ext in allowed_extensions:
-                # Create a directory for message attachments if it doesn't exist
-                attachment_dir = os.path.join('static', 'uploads', 'messages')
-                if not os.path.exists(attachment_dir):
-                    os.makedirs(attachment_dir)
-                
-                # Generate a secure filename to prevent path traversal attacks
-                timestamp = int(time.time())
-                secure_filename = f"message_{current_user.id}_{recipient_id}_{timestamp}.{file_ext}"
-                filepath = os.path.join(attachment_dir, secure_filename)
-                
-                # Save the file
-                attachment.save(filepath)
-                
-                # Determine the general attachment type
-                if file_ext in {'png', 'jpg', 'jpeg', 'gif'}:
-                    attachment_type = 'image'
-                elif file_ext in {'pdf', 'doc', 'docx'}:
-                    attachment_type = 'document'
-                else:
-                    attachment_type = 'file'
-                
-                # Save the path and original filename
-                attachment_path = '/' + filepath  # Store as a URL path
-                attachment_filename = attachment.filename
-                
-                # Add a note about the attachment to the message text
-                message_text += f'\n\n[Attachment: {attachment.filename}]'
-            else:
-                flash('Invalid file type. Please upload a valid file.', 'warning')
-        
-        # Create the message
         new_message = Message(
             sender_id=current_user.id,
             recipient_id=recipient_id,
-            message=message_text,
-            attachment_path=attachment_path,
-            attachment_type=attachment_type,
-            attachment_filename=attachment_filename
+            message=message_text
         )
         
         db.session.add(new_message)

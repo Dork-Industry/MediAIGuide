@@ -297,9 +297,6 @@ class Message(db.Model):
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    attachment_path = db.Column(db.String(255), nullable=True)  # Path to stored attachment
-    attachment_type = db.Column(db.String(50), nullable=True)  # Type of attachment (image, document, etc.)
-    attachment_filename = db.Column(db.String(255), nullable=True)  # Original filename
     
     # Relationships
     sender = db.relationship('User', foreign_keys=[sender_id], backref=db.backref('sent_messages', lazy='dynamic'))

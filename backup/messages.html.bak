@@ -123,23 +123,9 @@
                                                 <small>{{ message.created_at.strftime('%b %d, %Y %H:%M') }}</small>
                                             </div>
                                             <p class="mb-1">{{ message.message|truncate(100) }}</p>
-                                            <div>
-                                                {% if message.attachment_path %}
-                                                    <span class="badge bg-info">
-                                                        <i class="fas fa-paperclip me-1"></i>
-                                                        {% if message.attachment_type == 'image' %}
-                                                            Image
-                                                        {% elif message.attachment_type == 'document' %}
-                                                            Document
-                                                        {% else %}
-                                                            File
-                                                        {% endif %}
-                                                    </span>
-                                                {% endif %}
-                                                {% if not message.is_read %}
-                                                    <span class="badge bg-primary">New</span>
-                                                {% endif %}
-                                            </div>
+                                            {% if not message.is_read %}
+                                                <span class="badge bg-primary">New</span>
+                                            {% endif %}
                                         </a>
                                     {% endfor %}
                                 </div>

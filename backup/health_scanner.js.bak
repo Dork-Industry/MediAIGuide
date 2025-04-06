@@ -25,80 +25,56 @@ document.addEventListener('DOMContentLoaded', function() {
                 scanArea.innerHTML = '<div class="camera-loading text-center p-4"><div class="spinner-border text-primary mb-3" role="status"><span class="visually-hidden">Loading...</span></div><h5>Starting camera...</h5><p>Please grant camera permissions when prompted.</p></div>';
             }
             
-            // Make sure the video element exists and is visible
-            if (!video) {
-                video = document.createElement('video');
-                video.id = 'video';
-                video.autoplay = true;
-                video.playsInline = true; // Ensures better mobile compatibility
-                video.style.display = 'block';
-                video.style.width = '100%';
-                video.style.maxWidth = '640px';
-                video.style.margin = '0 auto';
-                
-                if (scanArea) {
-                    scanArea.appendChild(video);
+            // Get available video devices first to ensure camera is accessible
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            
+            if (videoDevices.length === 0) {
+                throw new Error('No camera detected on this device');
+            }
+            
+            console.log('Available video devices:', videoDevices.length);
+            
+            // Request camera permissions explicitly with a timeout
+            let permissionGranted = true;
+            if (navigator.permissions && navigator.permissions.query) {
+                try {
+                    const permissionStatus = await Promise.race([
+                        navigator.permissions.query({ name: 'camera' }),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Permission request timed out')), 3000))
+                    ]);
+                    
+                    if (permissionStatus.state === 'denied') {
+                        permissionGranted = false;
+                        throw new Error('Camera permission denied');
+                    }
+                } catch (permErr) {
+                    console.log('Permission check error, continuing with getUserMedia:', permErr);
                 }
             }
             
-            // Check if MediaDevices API is supported
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error('Your browser does not support camera access. Please try another browser like Chrome or Firefox.');
+            if (!permissionGranted) {
+                throw new Error('Camera permission denied');
             }
             
-            // Try to get available devices, but continue anyway if it fails
+            // Get user media with video only - try multiple constraints if one fails
             try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                console.log('Available video devices:', videoDevices.length);
-                
-                if (videoDevices.length === 0) {
-                    console.warn('No video devices detected, but will still attempt to access camera');
-                }
-            } catch (devicesError) {
-                console.warn('Could not enumerate devices, continuing anyway:', devicesError);
-            }
-            
-            // Set up progressive fallback for getUserMedia
-            const constraints = [
-                // Try first with ideal settings
-                {
+                stream = await navigator.mediaDevices.getUserMedia({
                     video: { 
                         width: { ideal: 640 },
                         height: { ideal: 480 },
                         facingMode: 'user'
                     },
                     audio: false
-                },
-                // Then with minimal settings
-                {
+                });
+            } catch (initialError) {
+                console.warn('Failed with initial constraints, trying simplified constraints:', initialError);
+                
+                // Try with minimal constraints
+                stream = await navigator.mediaDevices.getUserMedia({
                     video: true,
                     audio: false
-                },
-                // Finally try with explicit low resolution
-                {
-                    video: { 
-                        width: { exact: 320 },
-                        height: { exact: 240 }
-                    },
-                    audio: false
-                }
-            ];
-            
-            // Try each constraint set in sequence
-            for (let i = 0; i < constraints.length; i++) {
-                try {
-                    console.log(`Attempting camera access with constraints set ${i+1}:`, constraints[i]);
-                    stream = await navigator.mediaDevices.getUserMedia(constraints[i]);
-                    console.log('Camera access successful with constraints set', i+1);
-                    break; // Exit the loop if successful
-                } catch (err) {
-                    console.warn(`Failed with constraints set ${i+1}:`, err);
-                    // If this is the last attempt and it failed, re-throw the error
-                    if (i === constraints.length - 1) {
-                        throw err;
-                    }
-                }
+                });
             }
             
             // If we get here, we have a stream
@@ -133,60 +109,13 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (err) {
             console.error('Error accessing camera:', err);
             
-            // Show error on interface with more detailed troubleshooting steps
+            // Show error on interface
             const scanArea = document.querySelector('.scan-area');
             if (scanArea) {
-                scanArea.innerHTML = `
-                    <div class="camera-error text-center p-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-camera-off mb-3">
-                            <line x1="1" y1="1" x2="23" y2="23"></line>
-                            <path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56"></path>
-                        </svg>
-                        <h5>Camera access issue</h5>
-                        <p>${err.message || 'Could not access your camera.'}</p>
-                        <div class="alert alert-info text-start mt-3">
-                            <h6>Troubleshooting steps:</h6>
-                            <ol class="mb-0">
-                                <li>Make sure camera permissions are allowed for this site</li>
-                                <li>Try using Chrome or Firefox browsers</li>
-                                <li>On mobile, ensure the site has camera permissions in your phone settings</li>
-                                <li>Try switching to a different network (some networks block camera access)</li>
-                            </ol>
-                        </div>
-                        <button onclick="location.reload()" class="btn btn-primary mt-3">Try Again</button>
-                        <button id="uploadImageBtn" class="btn btn-secondary mt-3 ms-2">Upload Image Instead</button>
-                    </div>
-                `;
-                
-                // Add event listener for the upload button
-                document.getElementById('uploadImageBtn').addEventListener('click', function() {
-                    const fileInput = document.createElement('input');
-                    fileInput.type = 'file';
-                    fileInput.accept = 'image/*';
-                    fileInput.style.display = 'none';
-                    document.body.appendChild(fileInput);
-                    
-                    fileInput.addEventListener('change', function(e) {
-                        if (e.target.files && e.target.files[0]) {
-                            const reader = new FileReader();
-                            reader.onload = function(event) {
-                                capturedImage = event.target.result;
-                                // Show processing status
-                                scanStatus.style.display = 'block';
-                                // Reset button states
-                                resetBtn.disabled = false;
-                                captureBtn.disabled = true;
-                                // Process the image
-                                processHealthScan();
-                            };
-                            reader.readAsDataURL(e.target.files[0]);
-                        }
-                        document.body.removeChild(fileInput);
-                    });
-                    
-                    fileInput.click();
-                });
+                scanArea.innerHTML = '<div class="camera-error text-center p-4"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-camera-off mb-3"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56"></path></svg><h5>Camera access issue</h5><p>' + (err.message || 'Could not access your camera. Please ensure you have granted camera permissions and try again.') + '</p><button onclick="location.reload()" class="btn btn-primary mt-2">Try Again</button></div>';
             }
+            
+            alert('Camera access issue: ' + (err.message || 'Could not access your camera. Please ensure you have granted camera permissions and try again.'));
         }
     }
     
@@ -257,18 +186,14 @@ document.addEventListener('DOMContentLoaded', function() {
     async function processHealthScan() {
         try {
             // Prepare the data
-            const data = {
-                scan_type: scanType,
-                image_data: capturedImage
-            };
+            const formData = new FormData();
+            formData.append('scan_type', scanType);
+            formData.append('image_data', capturedImage);
             
             // Send the request to the server
             const response = await fetch('/api/health-scan', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
+                body: formData
             });
             
             if (!response.ok) {
@@ -276,21 +201,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Parse the response
-            const responseData = await response.json();
+            const data = await response.json();
             
-            if (responseData.error) {
-                throw new Error(responseData.error);
+            if (data.error) {
+                throw new Error(data.error);
             }
             
             // Save the results
-            scanResults = responseData;
+            scanResults = data;
             
             // Display the results
-            displayResults(responseData);
+            displayResults(data);
             
         } catch (err) {
             console.error('Error processing health scan:', err);
-            alert('Failed to process health scan: ' + err.message);
+            alert('Failed to process health scan. Please try again.');
             resetBtn.click(); // Reset the scanner
         } finally {
             // Hide the scanning status
@@ -408,86 +333,76 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Save scan results as a health report to the server
-        fetch('/api/save-health-scan', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                scan_type: scanType,
-                scan_data: scanResults
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Health scan saved successfully!');
-            } else {
-                throw new Error(data.error || 'Failed to save health scan.');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving health scan:', error);
-            alert('Failed to save health scan: ' + error.message);
-        });
+        // We already have the results saved server-side from the scan request
+        alert('Your scan results have been saved to your profile.');
     });
     
-    // Find a doctor button
+    // Find doctor button
     findDoctorBtn.addEventListener('click', function() {
-        window.location.href = '/doctors-listing?from=health-scan';
+        // Redirect to doctors listing page
+        window.location.href = '/doctors';
     });
     
-    // Helper function to get stress level description
-    function getStressLevel(value) {
-        if (typeof value !== 'number') return 'Unknown';
-        
-        if (value < 0.3) return 'Low';
-        if (value < 0.6) return 'Moderate';
-        return 'High';
-    }
+    // Helper functions
     
-    // Helper function to set risk bar color
-    function setRiskBarColor(elementId, riskValue) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-        
-        element.classList.remove('bg-success', 'bg-warning', 'bg-danger');
-        
-        if (riskValue < 30) {
-            element.classList.add('bg-success');
-        } else if (riskValue < 60) {
-            element.classList.add('bg-warning');
-        } else {
-            element.classList.add('bg-danger');
-        }
-    }
-    
-    // Helper function to animate numbers
+    // Animate a number from start to end over duration ms
     function animateNumber(elementId, start, end, duration) {
         const element = document.getElementById(elementId);
-        if (!element) return;
-        
         const range = end - start;
         const startTime = performance.now();
         
-        function updateNumber(timestamp) {
-            const elapsed = timestamp - startTime;
-            const progress = Math.min(elapsed / duration, 1);
+        function updateValue(currentTime) {
+            const elapsedTime = currentTime - startTime;
             
-            // Use easeOutQuad easing function
-            const easedProgress = 1 - Math.pow(1 - progress, 2);
-            const current = Math.floor(start + (range * easedProgress));
-            
-            element.textContent = current;
-            
-            if (progress < 1) {
-                requestAnimationFrame(updateNumber);
-            } else {
+            if (elapsedTime > duration) {
                 element.textContent = end;
+                return;
             }
+            
+            const progress = elapsedTime / duration;
+            const currentValue = Math.round(start + range * progress);
+            element.textContent = currentValue;
+            
+            requestAnimationFrame(updateValue);
         }
         
-        requestAnimationFrame(updateNumber);
+        requestAnimationFrame(updateValue);
     }
+    
+    // Set risk bar color based on risk level
+    function setRiskBarColor(barId, riskValue) {
+        const bar = document.getElementById(barId);
+        
+        if (riskValue < 25) {
+            bar.style.backgroundColor = '#4CAF50'; // Green
+        } else if (riskValue < 50) {
+            bar.style.backgroundColor = '#FFC107'; // Yellow
+        } else if (riskValue < 75) {
+            bar.style.backgroundColor = '#FF9800'; // Orange
+        } else {
+            bar.style.backgroundColor = '#F44336'; // Red
+        }
+    }
+    
+    // Get stress level text based on numeric value
+    function getStressLevel(value) {
+        if (!value) return 'Unknown';
+        
+        const stressValue = parseFloat(value);
+        if (stressValue < 0.3) return 'Low';
+        if (stressValue < 0.6) return 'Moderate';
+        return 'High';
+    }
+    
+    // Clean up when leaving the page
+    window.addEventListener('beforeunload', function() {
+        stopCamera();
+    });
+    
+    // Handle scan type changes
+    document.querySelectorAll('input[name="scanType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            scanType = this.value;
+        });
+    });
 });

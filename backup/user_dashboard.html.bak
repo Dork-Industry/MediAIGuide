@@ -10,59 +10,6 @@
         </div>
     </div>
     
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-teal-light">
-                    <h3 class="mb-0 fs-4 text-teal">Profile Management</h3>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="profile-icon me-3">
-                                    {% if current_user.profile_image %}
-                                        <img src="{{ current_user.profile_image }}" alt="Profile" class="rounded-circle" width="60" height="60">
-                                    {% else %}
-                                        <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background-color: #e6fcf5;">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#173430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    <h5 class="mb-0 fw-bold">{{ current_user.get_display_name() }}</h5>
-                                    <p class="text-muted mb-0">{{ current_user.email }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                                <a href="{{ url_for('reminders') }}" class="btn btn-outline-teal mb-2">
-                                    <i data-feather="bell" class="feather-sm me-1"></i> My Reminders
-                                </a>
-                                <a href="{{ url_for('messages') }}" class="btn btn-outline-teal mb-2">
-                                    <i data-feather="message-square" class="feather-sm me-1"></i> Messages
-                                </a>
-                                {% if current_user.is_doctor %}
-                                    <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline-teal mb-2">
-                                        <i data-feather="clipboard" class="feather-sm me-1"></i> Doctor Dashboard
-                                    </a>
-                                {% else %}
-                                    <a href="{{ url_for('create_doctor_profile') }}" class="btn btn-teal mb-2">
-                                        <i data-feather="user-plus" class="feather-sm me-1"></i> Register as Doctor
-                                    </a>
-                                {% endif %}
-                                <a href="#" class="btn btn-outline-teal mb-2">
-                                    <i data-feather="settings" class="feather-sm me-1"></i> Settings
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
     <div class="row mb-5">
         <div class="col-md-8">
             <div class="card subscription-card shadow h-100">
@@ -203,6 +150,118 @@
         </div>
     </div>
     
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-teal-light">
+                    <h3 class="mb-0 fs-4 text-teal">Profile Management</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="profile-icon me-3">
+                                    {% if current_user.profile_image %}
+                                        <img src="{{ current_user.profile_image }}" alt="Profile" class="rounded-circle" width="60" height="60">
+                                    {% else %}
+                                        <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background-color: #e6fcf5;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#173430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h5 class="mb-0 fw-bold">{{ current_user.get_display_name() }}</h5>
+                                    <p class="text-muted mb-0">{{ current_user.email }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                <a href="{{ url_for('reminders') }}" class="btn btn-outline-teal mb-2">
+                                    <i data-feather="bell" class="feather-sm me-1"></i> My Reminders
+                                </a>
+                                <a href="{{ url_for('messages') }}" class="btn btn-outline-teal mb-2">
+                                    <i data-feather="message-square" class="feather-sm me-1"></i> Messages
+                                </a>
+                                {% if current_user.is_doctor %}
+                                    <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline-teal mb-2">
+                                        <i data-feather="clipboard" class="feather-sm me-1"></i> Doctor Dashboard
+                                    </a>
+                                {% else %}
+                                    <div class="dropdown mb-2">
+                                        <button class="btn btn-teal dropdown-toggle" type="button" id="doctorOptionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i data-feather="user-plus" class="feather-sm me-1"></i> Doctor Options
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="doctorOptionsDropdown">
+                                            <li><a class="dropdown-item" href="{{ url_for('create_doctor_profile') }}">Register as Doctor</a></li>
+                                            <li><a class="dropdown-item" href="{{ url_for('doctors_listing') }}">Find a Doctor</a></li>
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                <a href="#" class="btn btn-outline-teal mb-2">
+                                    <i data-feather="settings" class="feather-sm me-1"></i> Settings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-teal-light">
+                    <h3 class="mb-0 fs-4 text-teal">Profile Management</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="profile-icon me-3">
+                                    {% if current_user.profile_image %}
+                                        <img src="{{ current_user.profile_image }}" alt="Profile" class="rounded-circle" width="60" height="60">
+                                    {% else %}
+                                        <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background-color: #e6fcf5;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#173430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h5 class="mb-0 fw-bold">{{ current_user.get_display_name() }}</h5>
+                                    <p class="text-muted mb-0">{{ current_user.email }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                <a href="{{ url_for('reminders') }}" class="btn btn-outline-teal mb-2">
+                                    <i data-feather="bell" class="feather-sm me-1"></i> My Reminders
+                                </a>
+                                <a href="{{ url_for('messages') }}" class="btn btn-outline-teal mb-2">
+                                    <i data-feather="message-square" class="feather-sm me-1"></i> Messages
+                                </a>
+                                {% if current_user.is_doctor %}
+                                    <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-outline-teal mb-2">
+                                        <i data-feather="clipboard" class="feather-sm me-1"></i> Doctor Dashboard
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('create_doctor_profile') }}" class="btn btn-teal mb-2">
+                                        <i data-feather="user-plus" class="feather-sm me-1"></i> Register as Doctor
+                                    </a>
+                                {% endif %}
+                                <a href="#" class="btn btn-outline-teal mb-2">
+                                    <i data-feather="settings" class="feather-sm me-1"></i> Settings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
@@ -277,28 +336,5 @@
     font-family: var(--font-primary);
     font-size: 10px;
 }
-.plan-feature {
-    margin-bottom: 8px;
-    align-items: center;
-}
-.plan-feature svg {
-    color: var(--accent-color);
-    margin-right: 8px;
-    flex-shrink: 0;
-}
 </style>
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Bootstrap tooltips if needed
-    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    }
-});
-</script>
 {% endblock %}
