@@ -242,20 +242,48 @@ def admin_dashboard():
         flash("You don't have permission to access the admin dashboard.", "danger")
         abort(403)
         
-    # Get user and subscription stats
-    users = db.session.query(User).filter(User.is_admin == False).all()
-    total_users = len(users)
+    # Get user and subscription stats - Use SQL directly for better performance
+    total_users = db.session.query(db.func.count(User.id)).filter(User.is_admin == False).scalar() or 0
     
-    free_users = sum(1 for u in users if u.subscription and u.subscription.plan_type == 'free')
-    basic_users = sum(1 for u in users if u.subscription and u.subscription.plan_type == 'basic')
-    premium_users = sum(1 for u in users if u.subscription and u.subscription.plan_type == 'premium')
+    # Use a single query to get subscription counts
+    subscription_counts = db.session.query(
+        Subscription.plan_type, 
+        db.func.count(Subscription.id)
+    ).group_by(Subscription.plan_type).all()
     
-    # Get search stats
+    # Convert to dictionary for easy access
+    subscription_dict = {plan: count for plan, count in subscription_counts}
+    
+    free_users = subscription_dict.get('free', 0)
+    basic_users = subscription_dict.get('basic', 0) 
+    premium_users = subscription_dict.get('premium', 0)
+    
+    # Get search stats - Use efficient SQL queries
     today = datetime.utcnow().date()
-    searches_today = db.session.query(SearchHistory).filter(db.func.date(SearchHistory.timestamp) == today).count()
+    searches_today = db.session.query(db.func.count(SearchHistory.id)).filter(
+        db.func.date(SearchHistory.timestamp) == today
+    ).scalar() or 0
     
     this_month = datetime.utcnow().replace(day=1)
-    searches_this_month = db.session.query(SearchHistory).filter(SearchHistory.timestamp >= this_month).count()
+    searches_this_month = db.session.query(db.func.count(SearchHistory.id)).filter(
+        SearchHistory.timestamp >= this_month
+    ).scalar() or 0
+    
+    # Get pending doctor verifications count
+    pending_doctors = db.session.query(db.func.count(Doctor.id)).filter(
+        Doctor.is_verified == False
+    ).scalar() or 0
+    
+    # Get active appointments count
+    active_appointments = db.session.query(db.func.count(Appointment.id)).filter(
+        Appointment.status.in_(['pending', 'confirmed']),
+        Appointment.appointment_date >= datetime.utcnow().date()
+    ).scalar() or 0
+    
+    # Get recent users - limit to 10 for performance
+    recent_users = db.session.query(User).filter(
+        User.is_admin == False
+    ).order_by(User.created_at.desc()).limit(10).all()
     
     logger.debug(f"Admin dashboard data loaded successfully for user: {current_user.username}")
     
@@ -267,7 +295,9 @@ def admin_dashboard():
                           premium_users=premium_users,
                           searches_today=searches_today,
                           searches_this_month=searches_this_month,
-                          users=users)
+                          pending_doctors=pending_doctors,
+                          active_appointments=active_appointments,
+                          users=recent_users)
 
 @app.route('/admin/user/<int:user_id>', methods=['GET', 'POST'])
 @login_required
@@ -1046,22 +1076,68 @@ def doctor_dashboard():
         flash('You need to create a doctor profile first.', 'warning')
         return redirect(url_for('create_doctor_profile'))
     
-    # Get upcoming appointments
-    upcoming_appointments = db.session.query(Appointment).filter(
+    # Use optimized queries to reduce database load - using scalar subqueries
+    # Get appointments counts with a single query
+    appointment_counts = db.session.query(
+        Appointment.status,
+        db.func.count(Appointment.id)
+    ).filter(
+        Appointment.doctor_id == doctor.id,
+        Appointment.appointment_date >= datetime.utcnow().date()
+    ).group_by(Appointment.status).all()
+    
+    # Convert to dictionary for easy lookup
+    appointment_stats = {status: count for status, count in appointment_counts}
+    
+    # Get upcoming appointments efficiently
+    upcoming_appointments = db.session.query(
+        Appointment, User
+    ).join(
+        User, User.id == Appointment.patient_id
+    ).filter(
         Appointment.doctor_id == doctor.id,
         Appointment.status.in_(['pending', 'confirmed']),
         Appointment.appointment_date >= datetime.utcnow().date()
-    ).order_by(Appointment.appointment_date, Appointment.appointment_time).all()
+    ).order_by(
+        Appointment.appointment_date, 
+        Appointment.appointment_time
+    ).all()
     
-    # Get reviews
-    recent_reviews = db.session.query(DoctorReview).filter_by(
-        doctor_id=doctor.id
-    ).order_by(DoctorReview.created_at.desc()).limit(5).all()
+    # Extract appointment objects for template
+    appointments = [appt for appt, _ in upcoming_appointments]
+    
+    # Get reviews with prefetched user data
+    recent_reviews = db.session.query(
+        DoctorReview, User
+    ).join(
+        User, User.id == DoctorReview.user_id
+    ).filter(
+        DoctorReview.doctor_id == doctor.id
+    ).order_by(
+        DoctorReview.created_at.desc()
+    ).limit(5).all()
+    
+    # Extract review objects for template
+    reviews = [review for review, _ in recent_reviews]
+    
+    # Get unread message count
+    unread_messages_count = db.session.query(
+        db.func.count(Message.id)
+    ).filter(
+        Message.recipient_id == current_user.id,
+        Message.is_read == False
+    ).scalar() or 0
     
     return render_template('doctor_dashboard.html', 
                           doctor=doctor,
-                          appointments=upcoming_appointments,
-                          reviews=recent_reviews)
+                          appointments=appointments,
+                          reviews=reviews,
+                          pending_appointments=appointment_stats.get('pending', 0),
+                          confirmed_appointments=appointment_stats.get('confirmed', 0),
+                          today_appointments=db.session.query(db.func.count(Appointment.id))
+                                              .filter(Appointment.doctor_id == doctor.id,
+                                                     Appointment.appointment_date == datetime.utcnow().date()).scalar() or 0,
+                          unread_messages=unread_messages_count)
 
 @app.route('/doctor/profile/create', methods=['GET', 'POST'])
 @login_required
