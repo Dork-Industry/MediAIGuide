@@ -1008,16 +1008,71 @@ def create_doctor_profile():
             flash('This license number is already registered.', 'danger')
             return redirect(url_for('create_doctor_profile'))
         
-        # Handle profile image upload
+        # Handle profile image and document uploads
         profile_image = None
+        degree_document = None
+        license_document = None
+        id_proof = None
+        additional_document = None
+        
+        # Create upload directory if it doesn't exist
+        upload_dir = os.path.join('static', 'uploads', 'doctors')
+        docs_dir = os.path.join(upload_dir, 'documents')
+        os.makedirs(upload_dir, exist_ok=True)
+        os.makedirs(docs_dir, exist_ok=True)
+        
+        # Save profile image if provided
         if 'profile_image' in request.files:
             image_file = request.files['profile_image']
             if image_file and image_file.filename:
                 image_filename = f"doctor_{current_user.id}_{int(datetime.utcnow().timestamp())}.jpg"
-                image_path = os.path.join('static', 'uploads', 'doctors', image_filename)
-                os.makedirs(os.path.dirname(image_path), exist_ok=True)
+                image_path = os.path.join(upload_dir, image_filename)
                 image_file.save(image_path)
-                profile_image = image_path
+                profile_image = '/' + image_path
+        
+        # Process degree document
+        if 'degree_document' in request.files:
+            doc_file = request.files['degree_document']
+            if doc_file and doc_file.filename:
+                file_ext = doc_file.filename.rsplit('.', 1)[1].lower() if '.' in doc_file.filename else ''
+                if file_ext in ['pdf', 'jpg', 'jpeg', 'png']:
+                    doc_filename = f"degree_{current_user.id}_{int(datetime.utcnow().timestamp())}.{file_ext}"
+                    doc_path = os.path.join(docs_dir, doc_filename)
+                    doc_file.save(doc_path)
+                    degree_document = '/' + doc_path
+        
+        # Process license document
+        if 'license_document' in request.files:
+            doc_file = request.files['license_document']
+            if doc_file and doc_file.filename:
+                file_ext = doc_file.filename.rsplit('.', 1)[1].lower() if '.' in doc_file.filename else ''
+                if file_ext in ['pdf', 'jpg', 'jpeg', 'png']:
+                    doc_filename = f"license_{current_user.id}_{int(datetime.utcnow().timestamp())}.{file_ext}"
+                    doc_path = os.path.join(docs_dir, doc_filename)
+                    doc_file.save(doc_path)
+                    license_document = '/' + doc_path
+        
+        # Process ID proof
+        if 'id_proof' in request.files:
+            doc_file = request.files['id_proof']
+            if doc_file and doc_file.filename:
+                file_ext = doc_file.filename.rsplit('.', 1)[1].lower() if '.' in doc_file.filename else ''
+                if file_ext in ['pdf', 'jpg', 'jpeg', 'png']:
+                    doc_filename = f"id_{current_user.id}_{int(datetime.utcnow().timestamp())}.{file_ext}"
+                    doc_path = os.path.join(docs_dir, doc_filename)
+                    doc_file.save(doc_path)
+                    id_proof = '/' + doc_path
+        
+        # Process additional document
+        if 'additional_document' in request.files:
+            doc_file = request.files['additional_document']
+            if doc_file and doc_file.filename:
+                file_ext = doc_file.filename.rsplit('.', 1)[1].lower() if '.' in doc_file.filename else ''
+                if file_ext in ['pdf', 'jpg', 'jpeg', 'png']:
+                    doc_filename = f"additional_{current_user.id}_{int(datetime.utcnow().timestamp())}.{file_ext}"
+                    doc_path = os.path.join(docs_dir, doc_filename)
+                    doc_file.save(doc_path)
+                    additional_document = '/' + doc_path
         
         # Create new doctor profile
         new_doctor = Doctor(
@@ -1037,6 +1092,10 @@ def create_doctor_profile():
             available_days=available_days,
             available_hours=available_hours,
             profile_image=profile_image,
+            degree_document=degree_document,
+            license_document=license_document,
+            id_proof=id_proof,
+            additional_document=additional_document,
             is_verified=False  # Needs admin approval
         )
         
@@ -1421,3 +1480,319 @@ def update_doctor_rating(doctor_id):
         doctor.total_ratings = len(reviews)
     
     db.session.commit()
+
+
+# User Settings and Account Management
+@app.route('/user/settings', methods=['GET'])
+@login_required
+def user_settings():
+    """User settings page"""
+    return render_template('user_settings.html')
+
+
+@app.route('/user/update-profile', methods=['POST'])
+@login_required
+def update_profile():
+    """Update user profile information"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        full_name = request.form.get('full_name')
+        date_of_birth_str = request.form.get('date_of_birth')
+        gender = request.form.get('gender')
+        phone_number = request.form.get('phone_number')
+        address = request.form.get('address')
+        
+        # Validate email
+        if email and email != current_user.email:
+            existing_user = db.session.query(User).filter_by(email=email).first()
+            if existing_user:
+                flash('Email already in use.', 'danger')
+                return redirect(url_for('user_settings'))
+            current_user.email = email
+        
+        # Update other fields
+        current_user.full_name = full_name
+        
+        # Parse date of birth if provided
+        try:
+            if date_of_birth_str:
+                current_user.date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Invalid date format for date of birth.', 'warning')
+        
+        current_user.gender = gender
+        current_user.phone_number = phone_number
+        current_user.address = address
+        
+        # Handle profile image upload
+        if 'profile_image' in request.files:
+            profile_image = request.files['profile_image']
+            if profile_image and profile_image.filename:
+                # Delete previous image if exists
+                if current_user.profile_image and os.path.exists(current_user.profile_image[1:]):  # Remove leading '/'
+                    try:
+                        os.remove(current_user.profile_image[1:])
+                    except:
+                        pass  # Ignore errors in file deletion
+                
+                # Save new image
+                image_filename = f"user_{current_user.id}_{int(datetime.utcnow().timestamp())}.jpg"
+                image_path = os.path.join('static', 'uploads', 'profiles', image_filename)
+                os.makedirs(os.path.dirname(image_path), exist_ok=True)
+                profile_image.save(image_path)
+                current_user.profile_image = '/' + image_path
+        
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('user_settings'))
+
+
+@app.route('/user/update-password', methods=['POST'])
+@login_required
+def update_password():
+    """Update user password"""
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate inputs
+        if not current_password or not new_password or not confirm_password:
+            flash('All fields are required.', 'danger')
+            return redirect(url_for('user_settings'))
+        
+        if new_password != confirm_password:
+            flash('New password and confirmation do not match.', 'danger')
+            return redirect(url_for('user_settings'))
+        
+        # Check current password
+        if not current_user.check_password(current_password):
+            flash('Current password is incorrect.', 'danger')
+            return redirect(url_for('user_settings'))
+        
+        # Set new password
+        current_user.set_password(new_password)
+        db.session.commit()
+        
+        flash('Password updated successfully!', 'success')
+        return redirect(url_for('user_settings'))
+
+
+@app.route('/user/update-privacy', methods=['POST'])
+@login_required
+def update_privacy_settings():
+    """Update user privacy settings"""
+    if request.method == 'POST':
+        # Update privacy settings
+        current_user.share_health_data = 'share_health_data' in request.form
+        current_user.receive_notifications = 'receive_notifications' in request.form
+        
+        db.session.commit()
+        flash('Privacy settings updated successfully!', 'success')
+        return redirect(url_for('user_settings'))
+
+
+@app.route('/user/download-data', methods=['POST'])
+@login_required
+def download_user_data():
+    """Download all user data as JSON"""
+    # Collect user data
+    user_data = {
+        'user_info': {
+            'username': current_user.username,
+            'email': current_user.email,
+            'full_name': current_user.full_name,
+            'date_of_birth': str(current_user.date_of_birth) if current_user.date_of_birth else None,
+            'gender': current_user.gender,
+            'phone_number': current_user.phone_number,
+            'address': current_user.address,
+            'created_at': str(current_user.created_at)
+        },
+        'subscription': None,
+        'health_scans': [],
+        'food_scans': [],
+        'bmi_records': [],
+        'reminders': [],
+        'appointments': [],
+        'messages': {
+            'sent': [],
+            'received': []
+        }
+    }
+    
+    # Add subscription data if exists
+    if current_user.subscription:
+        user_data['subscription'] = {
+            'plan_type': current_user.subscription.plan_type,
+            'plan_search_limit': current_user.subscription.plan_search_limit,
+            'start_date': str(current_user.subscription.start_date),
+            'end_date': str(current_user.subscription.end_date) if current_user.subscription.end_date else None,
+            'is_active': current_user.subscription.is_active()
+        }
+    
+    # Add health scans
+    for scan in current_user.health_scans:
+        scan_data = {
+            'scan_type': scan.scan_type,
+            'scan_date': str(scan.scan_date),
+            'wellness_score': scan.wellness_score
+        }
+        user_data['health_scans'].append(scan_data)
+    
+    # Add food scans
+    for scan in current_user.food_scans:
+        scan_data = {
+            'food_name': scan.food_name,
+            'scan_date': str(scan.scan_date),
+            'calories': scan.calories,
+            'protein': scan.protein,
+            'carbs': scan.carbs,
+            'fat': scan.fat
+        }
+        user_data['food_scans'].append(scan_data)
+    
+    # Add BMI records
+    for record in current_user.bmi_records:
+        record_data = {
+            'record_date': str(record.record_date),
+            'height': record.height,
+            'weight': record.weight,
+            'bmi_value': record.bmi_value,
+            'bmi_category': record.bmi_category
+        }
+        user_data['bmi_records'].append(record_data)
+    
+    # Add reminders
+    for reminder in current_user.reminders:
+        reminder_data = {
+            'title': reminder.title,
+            'description': reminder.description,
+            'reminder_type': reminder.reminder_type,
+            'schedule_time': str(reminder.schedule_time),
+            'repeat_type': reminder.repeat_type,
+            'repeat_days': reminder.repeat_days,
+            'active': reminder.active,
+            'created_at': str(reminder.created_at)
+        }
+        user_data['reminders'].append(reminder_data)
+    
+    # Add appointments
+    for appointment in current_user.appointments:
+        appointment_data = {
+            'doctor_id': appointment.doctor_id,
+            'appointment_date': str(appointment.appointment_date),
+            'appointment_time': str(appointment.appointment_time),
+            'status': appointment.status,
+            'type': appointment.type,
+            'created_at': str(appointment.created_at)
+        }
+        user_data['appointments'].append(appointment_data)
+    
+    # Add messages
+    for message in current_user.sent_messages:
+        message_data = {
+            'recipient_id': message.recipient_id,
+            'message': message.message,
+            'created_at': str(message.created_at),
+            'has_attachment': message.attachment_path is not None
+        }
+        user_data['messages']['sent'].append(message_data)
+    
+    for message in current_user.received_messages:
+        message_data = {
+            'sender_id': message.sender_id,
+            'message': message.message,
+            'created_at': str(message.created_at),
+            'has_attachment': message.attachment_path is not None
+        }
+        user_data['messages']['received'].append(message_data)
+    
+    # Create a response with JSON data
+    response = make_response(json.dumps(user_data, indent=2))
+    response.headers["Content-Disposition"] = f"attachment; filename=user_data_{current_user.username}.json"
+    response.headers["Content-Type"] = "application/json"
+    
+    return response
+
+
+@app.route('/user/delete-account', methods=['POST'])
+@login_required
+def delete_account():
+    """Delete user account and all associated data"""
+    if request.method == 'POST':
+        password = request.form.get('password_confirm')
+        confirm_deletion = 'confirm_deletion' in request.form
+        
+        # Validate password and confirmation
+        if not password or not confirm_deletion:
+            flash('Please provide your password and confirm account deletion.', 'danger')
+            return redirect(url_for('user_settings'))
+        
+        # Verify password
+        if not current_user.check_password(password):
+            flash('Password is incorrect.', 'danger')
+            return redirect(url_for('user_settings'))
+        
+        # Get user ID for logging purposes
+        user_id = current_user.id
+        username = current_user.username
+        
+        # Delete all associated data in the correct order to maintain referential integrity
+        try:
+            # Delete reminders
+            db.session.query(Reminder).filter_by(user_id=user_id).delete()
+            
+            # Delete BMI records
+            db.session.query(BMIRecord).filter_by(user_id=user_id).delete()
+            
+            # Delete food scans
+            db.session.query(FoodScan).filter_by(user_id=user_id).delete()
+            
+            # Delete health scans
+            db.session.query(HealthScan).filter_by(user_id=user_id).delete()
+            
+            # Delete search history
+            db.session.query(SearchHistory).filter_by(user_id=user_id).delete()
+            
+            # Delete subscription
+            db.session.query(Subscription).filter_by(user_id=user_id).delete()
+            
+            # Delete doctor reviews
+            db.session.query(DoctorReview).filter_by(user_id=user_id).delete()
+            
+            # Delete appointments
+            db.session.query(Appointment).filter_by(patient_id=user_id).delete()
+            
+            # Delete doctor profile if exists
+            doctor = db.session.query(Doctor).filter_by(user_id=user_id).first()
+            if doctor:
+                # Delete doctor appointments
+                db.session.query(Appointment).filter_by(doctor_id=doctor.id).delete()
+                
+                # Delete doctor reviews
+                db.session.query(DoctorReview).filter_by(doctor_id=doctor.id).delete()
+                
+                # Delete doctor
+                db.session.delete(doctor)
+            
+            # Delete messages
+            db.session.query(Message).filter(db.or_(
+                Message.sender_id == user_id,
+                Message.recipient_id == user_id
+            )).delete(synchronize_session='fetch')
+            
+            # Finally, delete the user account
+            db.session.delete(current_user)
+            db.session.commit()
+            
+            # Log out the user
+            logout_user()
+            
+            flash('Your account has been successfully deleted.', 'success')
+            return redirect(url_for('home'))
+        
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error deleting account for user {username} (ID: {user_id}): {str(e)}")
+            flash('An error occurred while deleting your account. Please try again later.', 'danger')
+            return redirect(url_for('user_settings'))

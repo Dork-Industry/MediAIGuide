@@ -30,6 +30,10 @@ class User(UserMixin, db.Model):
     # User type
     is_doctor = db.Column(db.Boolean, default=False)
     
+    # Privacy settings
+    share_health_data = db.Column(db.Boolean, default=True)
+    receive_notifications = db.Column(db.Boolean, default=True)
+    
     # Relationships
     subscription = db.relationship('Subscription', backref='user', uselist=False)
     search_history = db.relationship('SearchHistory', backref='user', lazy='dynamic')
@@ -252,6 +256,12 @@ class Doctor(db.Model):
     average_rating = db.Column(db.Float, default=0.0)
     total_ratings = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Document uploads
+    degree_document = db.Column(db.String(255), nullable=True)  # Path to degree certificate
+    license_document = db.Column(db.String(255), nullable=True)  # Path to license document
+    id_proof = db.Column(db.String(255), nullable=True)  # Path to ID proof
+    additional_document = db.Column(db.String(255), nullable=True)  # Path to any additional document
     
     # Relationships
     user = db.relationship('User', backref=db.backref('doctor_profile', uselist=False))

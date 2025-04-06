@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+
+{% block title %}User Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Account Settings</h1>
+    
+    {% include 'includes/flash_messages.html' %}
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-center mb-3">
+                        {% if current_user.profile_image %}
+                        <img src="{{ current_user.profile_image }}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white" style="width: 150px; height: 150px; font-size: 48px;">
+                            {{ current_user.username[0].upper() }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="text-center">{{ current_user.get_display_name() }}</h5>
+                    <p class="text-center text-muted">@{{ current_user.username }}</p>
+                    <p class="text-center text-muted">
+                        <small>Member since {{ current_user.created_at.strftime('%d %b, %Y') }}</small>
+                    </p>
+                    
+                    <ul class="nav flex-column nav-pills">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#profile" data-bs-toggle="tab">Profile Information</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#password" data-bs-toggle="tab">Password</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#privacy" data-bs-toggle="tab">Privacy Settings</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#subscription" data-bs-toggle="tab">Subscription</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#data" data-bs-toggle="tab">Your Data</a>
+                        </li>
+                        <li class="nav-item mt-3">
+                            <a class="nav-link text-danger" href="#delete-account" data-bs-toggle="tab">Delete Account</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Profile Information Tab -->
+                <div class="tab-pane fade show active" id="profile">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Profile Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('update_profile') }}" method="post" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="username" value="{{ current_user.username }}" disabled>
+                                    <small class="text-muted">Username cannot be changed.</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="full_name" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name" value="{{ current_user.full_name or '' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ current_user.date_of_birth.strftime('%Y-%m-%d') if current_user.date_of_birth else '' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="gender" class="form-label">Gender</label>
+                                    <select class="form-select" id="gender" name="gender">
+                                        <option value="">Prefer not to say</option>
+                                        <option value="male" {% if current_user.gender == 'male' %}selected{% endif %}>Male</option>
+                                        <option value="female" {% if current_user.gender == 'female' %}selected{% endif %}>Female</option>
+                                        <option value="other" {% if current_user.gender == 'other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="phone_number" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ current_user.phone_number or '' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address</label>
+                                    <textarea class="form-control" id="address" name="address" rows="3">{{ current_user.address or '' }}</textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="profile_image" class="form-label">Profile Image</label>
+                                    <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                                    <small class="text-muted">Upload a square image for best results. Maximum size: 5MB.</small>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Password Tab -->
+                <div class="tab-pane fade" id="password">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Change Password</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('update_password') }}" method="post">
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password" required>
+                                    <small class="text-muted">Password must be at least 8 characters long.</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Update Password</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Privacy Settings Tab -->
+                <div class="tab-pane fade" id="privacy">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Privacy Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('update_privacy_settings') }}" method="post">
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="share_health_data" name="share_health_data" {% if current_user.share_health_data %}checked{% endif %}>
+                                    <label class="form-check-label" for="share_health_data">
+                                        Share health data with doctors during appointments
+                                    </label>
+                                    <div class="form-text">
+                                        Your health scans, BMI records, and other health data will be shared with doctors when you book an appointment.
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="receive_notifications" name="receive_notifications" {% if current_user.receive_notifications %}checked{% endif %}>
+                                    <label class="form-check-label" for="receive_notifications">
+                                        Receive notifications and reminders
+                                    </label>
+                                    <div class="form-text">
+                                        You will receive notifications about appointments, reminders, and important updates.
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Privacy Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Subscription Tab -->
+                <div class="tab-pane fade" id="subscription">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Subscription Details</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if current_user.subscription %}
+                                <div class="mb-4">
+                                    <h6>Current Plan: <span class="text-primary text-capitalize">{{ current_user.subscription.plan_type }}</span></h6>
+                                    <p>Search Limit: {{ current_user.subscription.plan_search_limit }} searches per month</p>
+                                    <p>Started on: {{ current_user.subscription.start_date.strftime('%d %b, %Y') }}</p>
+                                    {% if current_user.subscription.end_date %}
+                                        <p>Expires on: {{ current_user.subscription.end_date.strftime('%d %b, %Y') }}</p>
+                                    {% endif %}
+                                    <p>Status: {% if current_user.subscription.is_active() %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</p>
+                                </div>
+                                <a href="{{ url_for('subscription') }}" class="btn btn-outline-primary">Manage Subscription</a>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <h6>You are on the Free Plan</h6>
+                                    <p>Upgrade to access more features and increase your search limits.</p>
+                                </div>
+                                <a href="{{ url_for('subscription') }}" class="btn btn-primary">Upgrade Now</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Your Data Tab -->
+                <div class="tab-pane fade" id="data">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Your Data</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>You can download a copy of all your data stored in our system.</p>
+                            <form action="{{ url_for('download_user_data') }}" method="post">
+                                <button type="submit" class="btn btn-primary">Download Your Data (JSON)</button>
+                            </form>
+                            
+                            <hr>
+                            
+                            <h6 class="mt-4">Data Statistics</h6>
+                            <div class="row mt-3">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Health Scans</h6>
+                                            <p class="card-text display-6">{{ current_user.health_scans.count() }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Food Scans</h6>
+                                            <p class="card-text display-6">{{ current_user.food_scans.count() }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title">BMI Records</h6>
+                                            <p class="card-text display-6">{{ current_user.bmi_records.count() }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Reminders</h6>
+                                            <p class="card-text display-6">{{ current_user.reminders.count() }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Appointments</h6>
+                                            <p class="card-text display-6">{{ current_user.appointments.count() }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Messages</h6>
+                                            <p class="card-text display-6">{{ current_user.sent_messages.count() + current_user.received_messages.count() }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Delete Account Tab -->
+                <div class="tab-pane fade" id="delete-account">
+                    <div class="card mb-4 border-danger">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">Delete Account</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning">
+                                <h5>Warning: This action cannot be undone!</h5>
+                                <p>Deleting your account will permanently remove all your data from our system, including:</p>
+                                <ul>
+                                    <li>Your profile information</li>
+                                    <li>Health scan records</li>
+                                    <li>Food scan data</li>
+                                    <li>BMI records</li>
+                                    <li>Reminders</li>
+                                    <li>Appointments</li>
+                                    <li>Messages</li>
+                                    <li>Doctor profile (if applicable)</li>
+                                </ul>
+                            </div>
+                            
+                            <form action="{{ url_for('delete_account') }}" method="post">
+                                <div class="mb-3">
+                                    <label for="password_confirm" class="form-label">Confirm with your password</label>
+                                    <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="confirm_deletion" name="confirm_deletion" required>
+                                    <label class="form-check-label" for="confirm_deletion">
+                                        I understand that this action cannot be undone and all my data will be permanently deleted.
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-danger">Delete My Account Permanently</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
