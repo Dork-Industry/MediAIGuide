@@ -164,7 +164,7 @@ def init_admin_account():
 
 def analyze_health_data(image_path, scan_type='face'):
     """
-    Analyze health scan data from image using OpenAI to generate health metrics
+    Analyze health scan data from image using ML and OpenAI to generate health metrics
     
     Args:
         image_path (str): Path to the image file to analyze
@@ -173,6 +173,68 @@ def analyze_health_data(image_path, scan_type='face'):
     Returns:
         dict: Dictionary containing health metrics based on scan type
     """
+    # First, try to use our ML-based heart rate detection for improved accuracy
+    try:
+        import cv2
+        import numpy as np
+        from ml_heart_rate import get_vital_signs_from_image
+        
+        # Read the image for ML processing
+        image = cv2.imread(image_path)
+        if image is not None:
+            # Use ML to get vital signs
+            ml_results = get_vital_signs_from_image(image)
+            logger.info(f"ML processing results: {ml_results}")
+            
+            # If we got valid results, use them
+            if ml_results and ml_results["heart_rate"]:
+                # If OpenAI is not available, return ML results directly
+                if not openai or not OPENAI_API_KEY:
+                    # Create a complete result with the ML data
+                    result = {
+                        "scan_type": scan_type,
+                        "heart_rate": ml_results["heart_rate"],
+                        "blood_pressure_systolic": ml_results["blood_pressure_systolic"],
+                        "blood_pressure_diastolic": ml_results["blood_pressure_diastolic"],
+                        "oxygen_saturation": ml_results["oxygen_saturation"],
+                        "sympathetic_stress": ml_results["stress_level"],
+                        "wellness_score": 75, # Default estimate based on vital signs
+                        "recommendations": [
+                            "Maintain a balanced diet with plenty of fruits and vegetables",
+                            "Stay physically active with regular exercise",
+                            "Ensure you're getting adequate sleep (7-8 hours)",
+                            "Stay hydrated by drinking plenty of water",
+                            "Practice stress management techniques like meditation"
+                        ],
+                        "summary": "Your vital signs have been analyzed using advanced computer vision. This provides a reasonable estimate of your health metrics."
+                    }
+                    
+                    # Add risk estimates based on the ML results
+                    if ml_results["blood_pressure_systolic"] > 130:
+                        result["hypertension_risk"] = min(60 + (ml_results["blood_pressure_systolic"] - 130) * 2, 90)
+                    else:
+                        result["hypertension_risk"] = max(20, 40 - (130 - ml_results["blood_pressure_systolic"]) * 1.5)
+                    
+                    # Heart age estimate based on heart rate and blood pressure
+                    avg_hr_resting = 70  # Average resting heart rate
+                    hr_factor = (ml_results["heart_rate"] - avg_hr_resting) * 0.5
+                    bp_factor = (ml_results["blood_pressure_systolic"] - 120) * 0.2
+                    estimated_diff = hr_factor + bp_factor
+                    
+                    # Get user age if available, or use a default of 35
+                    if hasattr(current_user, 'date_of_birth') and current_user.date_of_birth:
+                        from datetime import datetime
+                        user_age = (datetime.utcnow().date() - current_user.date_of_birth).days // 365
+                    else:
+                        user_age = 35
+                        
+                    result["heart_age"] = max(18, user_age + estimated_diff)
+                    
+                    return result
+    except Exception as e:
+        logger.error(f"Error in ML processing: {str(e)}")
+    
+    # Fall back to OpenAI if ML processing failed or is incomplete
     # Check if OpenAI client is available
     if not openai or not OPENAI_API_KEY:
         logger.warning(f"OPENAI_API_KEY is not available. Health scan feature is limited.")

@@ -378,6 +378,98 @@ def health_scanner():
     """Health scanner page to analyze vital signs and health metrics"""
     return render_template('health_scanner.html')
 
+@app.route('/realtime-heart-rate')
+@login_required
+def realtime_heart_rate():
+    """Real-time heart rate monitoring using webcam data and ML"""
+    return render_template('realtime_heart_rate.html')
+
+@app.route('/api/save-health-scan', methods=['POST'])
+@login_required
+def api_save_health_scan():
+    """API endpoint to save health scan data from real-time monitoring"""
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    data = request.get_json()
+    
+    try:
+        # Create a new health scan record
+        new_scan = HealthScan(
+            user_id=current_user.id,
+            scan_type=data.get('scan_type', 'face'),
+            heart_rate=data.get('heart_rate'),
+            blood_pressure_systolic=data.get('blood_pressure_systolic'),
+            blood_pressure_diastolic=data.get('blood_pressure_diastolic'),
+            oxygen_saturation=data.get('oxygen_saturation'),
+            sympathetic_stress=data.get('stress_level'),
+            scan_image_path=None,  # We don't store the actual image
+            wellness_score=75 if data.get('heart_rate') and data.get('heart_rate') < 85 else 65  # Simple estimate
+        )
+        
+        # Save to database
+        db.session.add(new_scan)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "scan_id": new_scan.id,
+            "message": "Health data saved successfully"
+        })
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
+        
+@app.route('/api/process-heart-rate-frame', methods=['POST'])
+@login_required
+def api_process_heart_rate_frame():
+    """API endpoint to process a video frame for heart rate detection"""
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        # Get image data from request
+        data = request.get_json()
+        if not data or not data.get('image_data'):
+            return jsonify({"error": "No image data provided"}), 400
+            
+        image_data = data.get('image_data')
+        
+        # Process image with ML heart rate detection
+        import base64
+        import numpy as np
+        import cv2
+        from ml_heart_rate import get_vital_signs_from_image
+        
+        # Decode base64 image
+        if ',' in image_data:
+            image_data = image_data.split(',', 1)[1]
+        
+        img_bytes = base64.b64decode(image_data)
+        np_arr = np.frombuffer(img_bytes, np.uint8)
+        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        
+        if img is None:
+            return jsonify({"error": "Invalid image data"}), 400
+            
+        # Process image to get vital signs
+        results = get_vital_signs_from_image(img)
+        
+        # Return results
+        return jsonify({
+            "success": True,
+            "heart_rate": results["heart_rate"],
+            "blood_pressure_systolic": results["blood_pressure_systolic"],
+            "blood_pressure_diastolic": results["blood_pressure_diastolic"],
+            "oxygen_saturation": results["oxygen_saturation"],
+            "stress_level": results["stress_level"]
+        })
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/health-scan', methods=['POST'])
 @login_required
 def api_health_scan():
