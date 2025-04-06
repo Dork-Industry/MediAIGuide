@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% include 'includes/flash_messages.html' %}
+    
+    <h1 class="display-5 mb-4">Messages</h1>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Conversations</h2>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="nav nav-pills flex-column" id="conversations-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active w-100 text-start rounded-0 px-3 py-3" 
+                                    id="inbox-tab" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#inbox" 
+                                    type="button" 
+                                    role="tab">
+                                <i class="fas fa-inbox me-2"></i> Inbox
+                                {% set unread_count = received_messages|selectattr('is_read', 'equalto', false)|list|length %}
+                                {% if unread_count > 0 %}
+                                <span class="badge bg-danger ms-2">{{ unread_count }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link w-100 text-start rounded-0 px-3 py-3" 
+                                    id="sent-tab" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#sent" 
+                                    type="button" 
+                                    role="tab">
+                                <i class="fas fa-paper-plane me-2"></i> Sent Messages
+                            </button>
+                        </li>
+                        
+                        <li class="nav-item border-top">
+                            <div class="px-3 py-2 bg-light">
+                                <h6 class="mb-0 text-muted small">People</h6>
+                            </div>
+                        </li>
+                        
+                        {% set all_conversation_ids = [] %}
+                        {% for message in received_messages %}
+                            {% if message.sender_id not in all_conversation_ids %}
+                                {% set _ = all_conversation_ids.append(message.sender_id) %}
+                                <li class="nav-item" role="presentation">
+                                    <a href="{{ url_for('send_message', recipient_id=message.sender_id) }}" 
+                                       class="nav-link w-100 text-start rounded-0 px-3 py-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                {% if message.sender_id in doctor_user_ids %}
+                                                    <span class="badge bg-primary text-white">Dr</span>
+                                                {% else %}
+                                                    <i class="fas fa-user text-muted"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1 ms-2">
+                                                {{ user_map.get(message.sender_id, 'Unknown User') }}
+                                                {% if message.sender_id in doctor_user_ids %}
+                                                    <small class="text-muted">(Doctor)</small>
+                                                {% endif %}
+                                                {% set user_unread = received_messages|selectattr('sender_id', 'equalto', message.sender_id)|selectattr('is_read', 'equalto', false)|list|length %}
+                                                {% if user_unread > 0 %}
+                                                    <span class="badge bg-danger float-end">{{ user_unread }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% for message in sent_messages %}
+                            {% if message.recipient_id not in all_conversation_ids and message.recipient_id != current_user.id %}
+                                {% set _ = all_conversation_ids.append(message.recipient_id) %}
+                                <li class="nav-item" role="presentation">
+                                    <a href="{{ url_for('send_message', recipient_id=message.recipient_id) }}" 
+                                       class="nav-link w-100 text-start rounded-0 px-3 py-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                {% if message.recipient_id in doctor_user_ids %}
+                                                    <span class="badge bg-primary text-white">Dr</span>
+                                                {% else %}
+                                                    <i class="fas fa-user text-muted"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1 ms-2">
+                                                {{ user_map.get(message.recipient_id, 'Unknown User') }}
+                                                {% if message.recipient_id in doctor_user_ids %}
+                                                    <small class="text-muted">(Doctor)</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="tab-content" id="conversations-tabContent">
+                        <div class="tab-pane fade show active" id="inbox" role="tabpanel" aria-labelledby="inbox-tab">
+                            <h3 class="h5 mb-3">Received Messages</h3>
+                            {% if received_messages %}
+                                <div class="list-group">
+                                    {% for message in received_messages %}
+                                        <a href="{{ url_for('send_message', recipient_id=message.sender_id) }}" class="list-group-item list-group-item-action {% if not message.is_read %}active{% endif %}">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h5 class="mb-1">From: {{ user_map.get(message.sender_id, 'Unknown User') }}</h5>
+                                                <small>{{ message.created_at.strftime('%b %d, %Y %H:%M') }}</small>
+                                            </div>
+                                            <p class="mb-1">{{ message.message|truncate(100) }}</p>
+                                            {% if not message.is_read %}
+                                                <span class="badge bg-primary">New</span>
+                                            {% endif %}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <p class="mb-0">You have no messages in your inbox.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="tab-pane fade" id="sent" role="tabpanel" aria-labelledby="sent-tab">
+                            <h3 class="h5 mb-3">Sent Messages</h3>
+                            {% if sent_messages %}
+                                <div class="list-group">
+                                    {% for message in sent_messages %}
+                                        <a href="{{ url_for('send_message', recipient_id=message.recipient_id) }}" class="list-group-item list-group-item-action">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h5 class="mb-1">To: {{ user_map.get(message.recipient_id, 'Unknown User') }}</h5>
+                                                <small>{{ message.created_at.strftime('%b %d, %Y %H:%M') }}</small>
+                                            </div>
+                                            <p class="mb-1">{{ message.message|truncate(100) }}</p>
+                                            {% if message.is_read %}
+                                                <span class="badge bg-success">Read</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Delivered</span>
+                                            {% endif %}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <p class="mb-0">You haven't sent any messages yet.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

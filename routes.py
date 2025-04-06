@@ -811,15 +811,27 @@ def delete_reminder(reminder_id):
 @login_required
 def get_active_reminders():
     """API endpoint to get active reminders for the current time"""
-    current_time = datetime.utcnow().time()
-    current_day = datetime.utcnow().isoweekday()  # 1-7 (Monday-Sunday)
+    now = datetime.utcnow()
+    current_time = now.time()
+    current_day = now.isoweekday()  # 1-7 (Monday-Sunday)
     
-    # Get reminders scheduled for the current time (±1 minute)
+    # Get all active reminders for the user
     reminders = db.session.query(Reminder).filter(
         Reminder.user_id == current_user.id,
-        Reminder.active == True,
-        db.func.time_diff(Reminder.schedule_time, current_time) <= 60  # Time diff in seconds
+        Reminder.active == True
     ).all()
+    
+    # Manually filter for current time (±1 minute)
+    current_minute = current_time.hour * 60 + current_time.minute
+    filtered_reminders = []
+    
+    for reminder in reminders:
+        reminder_minute = reminder.schedule_time.hour * 60 + reminder.schedule_time.minute
+        diff = abs(current_minute - reminder_minute)
+        if diff <= 1 or diff >= 1439:  # Within 1 minute or at day boundary
+            filtered_reminders.append(reminder)
+    
+    reminders = filtered_reminders
     
     # Filter by repeat days if not daily
     active_reminders = []
@@ -1092,6 +1104,9 @@ def book_appointment(doctor_id):
     """Book an appointment with a doctor"""
     doctor = db.session.query(Doctor).filter_by(id=doctor_id, is_verified=True, is_active=True).first_or_404()
     
+    # Add the current date for the form
+    now = datetime.utcnow()
+    
     if request.method == 'POST':
         date_str = request.form.get('appointment_date')
         time_str = request.form.get('appointment_time')
@@ -1145,7 +1160,8 @@ def book_appointment(doctor_id):
     return render_template('book_appointment.html', 
                           doctor=doctor,
                           available_days=available_days,
-                          available_hours=available_hours)
+                          available_hours=available_hours,
+                          now=now)
 
 @app.route('/doctors/<int:doctor_id>/review', methods=['POST'])
 @login_required

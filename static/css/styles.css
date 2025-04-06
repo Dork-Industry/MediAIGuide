@@ -608,11 +608,78 @@ tr:hover {
     transition: width 0.5s ease;
 }
 
+.progress-animated .progress-bar {
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-animated .progress-bar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    width: 50%;
+    animation: progressShine 2s infinite;
+}
+
+@keyframes progressShine {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(200%);
+    }
+}
+
 .progress-info {
     display: flex;
     justify-content: space-between;
     font-size: 12px;
     color: var(--text-light);
+}
+
+/* Goal Tracker */
+.goal-tracker {
+    border-radius: var(--card-radius);
+    padding: 15px;
+    background-color: rgba(23, 52, 48, 0.03);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.goal-tracker:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.goal-tracker .progress {
+    height: 12px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.goal-tracker .progress-bar {
+    border-radius: 6px;
+    background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+    background-size: 1rem 1rem;
+    animation: progressAnimation 1s linear infinite;
+}
+
+@keyframes progressAnimation {
+    from {
+        background-position: 1rem 0;
+    }
+    to {
+        background-position: 0 0;
+    }
 }
 
 /* Chart Container */
