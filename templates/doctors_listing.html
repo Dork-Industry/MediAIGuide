@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Find Doctors{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Find Doctors</h1>
+            
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <form action="{{ url_for('search_doctors') }}" method="get">
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label for="query" class="form-label">Search by name or keyword</label>
+                                <input type="text" class="form-control" id="query" name="query" placeholder="Search...">
+                            </div>
+                            <div class="col-md-5">
+                                <label for="specialty" class="form-label">Filter by specialty</label>
+                                <select class="form-select" id="specialty" name="specialty">
+                                    <option value="">All Specialties</option>
+                                    {% for specialty in specialties %}
+                                        <option value="{{ specialty }}">{{ specialty }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search me-2"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            {% if doctors %}
+                <div class="row">
+                    {% for doctor in doctors %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 shadow-sm border-0 rounded-4">
+                                <div class="card-header bg-light border-0 p-0">
+                                    <div class="d-flex justify-content-center">
+                                        {% if doctor.profile_image %}
+                                            <img src="{{ doctor.profile_image }}" class="card-img-top rounded-circle mt-3" alt="{{ doctor.full_name }}" style="width: 100px; height: 100px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mt-3" style="width: 100px; height: 100px;">
+                                                <span class="fs-1">{{ doctor.full_name[0] }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-center mt-2">
+                                        <h5 class="card-title">Dr. {{ doctor.full_name }}</h5>
+                                        <p class="badge bg-primary">{{ doctor.specialty }}</p>
+                                    </div>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-center mb-2">
+                                        <div class="rating">
+                                            {% for i in range(5) %}
+                                                {% if i < doctor.average_rating|int %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% elif (doctor.average_rating - i) >= 0.5 %}
+                                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="ms-2">{{ doctor.average_rating|round(1) }}</span>
+                                            <span class="text-muted">({{ doctor.total_ratings }})</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <p class="card-text">{{ doctor.bio|truncate(120) if doctor.bio else 'No bio available.' }}</p>
+                                    </div>
+                                    
+                                    <div class="row mb-2">
+                                        <div class="col-6">
+                                            <small class="text-muted">Experience</small>
+                                            <p class="mb-0">{{ doctor.experience_years }} years</p>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Consultation Fee</small>
+                                            <p class="mb-0">{% if doctor.consultation_fee %}₹{{ doctor.consultation_fee }}{% else %}Not specified{% endif %}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-2">
+                                        <div class="col-12">
+                                            <small class="text-muted">Location</small>
+                                            <p class="mb-0">{{ doctor.city }}{% if doctor.state %}, {{ doctor.state }}{% endif %}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent border-0 p-3">
+                                    <div class="d-grid">
+                                        <a href="{{ url_for('doctor_profile', doctor_id=doctor.id) }}" class="btn btn-outline-primary">View Profile</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">No doctors found matching your criteria. Please try a different search.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

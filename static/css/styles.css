@@ -482,3 +482,455 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
     height: 80px;
     margin-bottom: 1.5rem;
 }
+
+/* Mobile bottom navigation bar */
+.mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: white;
+    display: flex;
+    justify-content: space-around;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    padding: 8px 0;
+    border-top: 1px solid #f0f0f0;
+}
+
+.mobile-nav .nav-item {
+    flex: 1;
+    text-align: center;
+}
+
+.mobile-nav .nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--neutral-gray);
+    font-size: 0.75rem;
+    padding: 6px 0 !important;
+    margin: 0;
+    border-radius: 0;
+}
+
+.mobile-nav .nav-link svg {
+    width: 20px;
+    height: 20px;
+    margin-bottom: 4px;
+    stroke: var(--neutral-gray);
+}
+
+.mobile-nav .nav-link.active {
+    color: var(--teal-primary);
+}
+
+.mobile-nav .nav-link.active svg {
+    stroke: var(--teal-primary);
+}
+
+.mobile-nav .nav-link:hover {
+    background-color: transparent;
+    color: var(--teal-primary);
+    transform: none;
+}
+
+.mobile-nav .nav-link:hover svg {
+    stroke: var(--teal-primary);
+}
+
+/* Add bottom margin to container on mobile for bottom nav */
+.mb-mobile {
+    margin-bottom: 80px;
+}
+
+/* Health Scanner Page Styles */
+.scan-container {
+    position: relative;
+    background-color: var(--neutral-light);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.scan-container video, .scan-container canvas {
+    width: 100%;
+    border-radius: 8px;
+    display: block;
+}
+
+.scan-controls {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.scan-result {
+    padding: 2rem;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    margin-top: 1.5rem;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.result-card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.result-header {
+    background-color: var(--teal-ultra-light);
+    padding: 1.25rem;
+    border-bottom: none;
+}
+
+.result-body {
+    padding: 1.5rem;
+}
+
+/* Progress bars for health metrics */
+.health-metric {
+    margin-bottom: 1.5rem;
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.metric-name {
+    font-weight: 600;
+    color: var(--neutral-dark);
+}
+
+.metric-value {
+    font-weight: 700;
+    color: var(--teal-primary);
+}
+
+.metric-bar {
+    height: 10px;
+    border-radius: 5px;
+    background-color: #e9ecef;
+    overflow: hidden;
+    position: relative;
+}
+
+.metric-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal-light), var(--teal-primary));
+    border-radius: 5px;
+    transition: width 1s ease-in-out;
+}
+
+.risk-low {
+    background: linear-gradient(90deg, #63e6be, #20c997);
+}
+
+.risk-medium {
+    background: linear-gradient(90deg, #ffd54f, #ffb300);
+}
+
+.risk-high {
+    background: linear-gradient(90deg, #ff8a80, #ff5252);
+}
+
+/* Diet Plan Cards */
+.diet-plan-card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    margin-bottom: 1.5rem;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.diet-plan-card:hover {
+    transform: translateY(-5px);
+}
+
+.meal-title {
+    display: flex;
+    align-items: center;
+    color: var(--teal-primary);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.meal-title svg {
+    margin-right: 0.75rem;
+}
+
+.nutrition-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f5f5f5;
+}
+
+.nutrition-item {
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background-color: var(--teal-ultra-light);
+    min-width: 80px;
+}
+
+.nutrition-value {
+    font-weight: 700;
+    color: var(--teal-primary);
+    font-size: 1.1rem;
+}
+
+.nutrition-label {
+    font-size: 0.8rem;
+    color: var(--neutral-gray);
+}
+
+/* BMI Calculator Styles */
+.bmi-calculator {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.bmi-result {
+    text-align: center;
+    padding: 2rem;
+    margin-top: 1.5rem;
+    border-radius: 12px;
+    background-color: var(--teal-ultra-light);
+}
+
+.bmi-value {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--teal-primary);
+    margin-bottom: 1rem;
+}
+
+.bmi-category {
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    border-radius: 30px;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.category-underweight {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+}
+
+.category-normal {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.category-overweight {
+    background-color: #fff8e1;
+    color: #ff8f00;
+}
+
+.category-obese {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+/* Food Scanner Results */
+.food-scanner-result {
+    padding: 2rem;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    margin-top: 1.5rem;
+}
+
+.food-image-container {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.food-image-container img {
+    width: 100%;
+    display: block;
+}
+
+.nutrition-chart {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.nutrition-chart-item {
+    flex: 1;
+    min-width: 120px;
+    padding: 1rem;
+    border-radius: 10px;
+    background-color: var(--teal-ultra-light);
+    text-align: center;
+}
+
+.chart-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--teal-primary);
+}
+
+.chart-label {
+    font-size: 0.9rem;
+    color: var(--neutral-gray);
+    margin-top: 0.3rem;
+}
+
+.food-facts {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f5f5f5;
+}
+
+.food-fact {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.food-fact svg {
+    margin-right: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+/* Loading Animation */
+.loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(32, 201, 151, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--teal-primary);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Wellness Score Card */
+.wellness-score-card {
+    text-align: center;
+    padding: 2rem;
+    border-radius: 15px;
+    background: linear-gradient(135deg, var(--teal-ultra-light) 0%, white 100%);
+    border: 2px solid var(--teal-light);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.wellness-score-card:before {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background-color: rgba(32, 201, 151, 0.05);
+    border-radius: 50%;
+    top: -100px;
+    right: -100px;
+    z-index: 0;
+}
+
+.score-value {
+    font-size: 5rem;
+    font-weight: 700;
+    color: var(--teal-primary);
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.score-label {
+    font-size: 1.2rem;
+    color: var(--neutral-dark);
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.score-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.score-item {
+    text-align: center;
+    min-width: 100px;
+    padding: 1rem;
+    border-radius: 10px;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.score-item-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--teal-primary);
+}
+
+.score-item-label {
+    font-size: 0.8rem;
+    color: var(--neutral-gray);
+}
+
+@media (max-width: 768px) {
+    .scan-controls {
+        padding: 1rem;
+    }
+    
+    .scan-result, .bmi-calculator, .food-scanner-result {
+        padding: 1.5rem;
+    }
+    
+    .score-value {
+        font-size: 3.5rem;
+    }
+    
+    .score-item {
+        min-width: 80px;
+        padding: 0.75rem;
+    }
+    
+    .score-item-value {
+        font-size: 1.2rem;
+    }
+}

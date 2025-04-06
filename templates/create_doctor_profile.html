@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Doctor Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-primary text-white p-3 rounded-top-4">
+                    <h2 class="card-title h4 mb-0">Create Doctor Profile</h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info mb-4">
+                        <p class="mb-0"><i class="fas fa-info-circle me-2"></i> Your profile will be reviewed by an administrator before becoming visible on the platform.</p>
+                    </div>
+                    
+                    <form action="{{ url_for('create_doctor_profile') }}" method="post" enctype="multipart/form-data">
+                        <h5 class="border-bottom pb-2 mb-3">Personal Information</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="profile_image" class="form-label">Profile Image</label>
+                                <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="specialty" class="form-label">Specialty *</label>
+                                <select class="form-select" id="specialty" name="specialty" required>
+                                    <option value="">Select Specialty</option>
+                                    <option value="Cardiology">Cardiology</option>
+                                    <option value="Dermatology">Dermatology</option>
+                                    <option value="Endocrinology">Endocrinology</option>
+                                    <option value="Family Medicine">Family Medicine</option>
+                                    <option value="Gastroenterology">Gastroenterology</option>
+                                    <option value="General Medicine">General Medicine</option>
+                                    <option value="Neurology">Neurology</option>
+                                    <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
+                                    <option value="Oncology">Oncology</option>
+                                    <option value="Ophthalmology">Ophthalmology</option>
+                                    <option value="Orthopedics">Orthopedics</option>
+                                    <option value="Pediatrics">Pediatrics</option>
+                                    <option value="Psychiatry">Psychiatry</option>
+                                    <option value="Pulmonology">Pulmonology</option>
+                                    <option value="Radiology">Radiology</option>
+                                    <option value="Urology">Urology</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="experience_years" class="form-label">Years of Experience *</label>
+                                <input type="number" class="form-control" id="experience_years" name="experience_years" min="1" required>
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3">Qualifications</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="qualification" class="form-label">Qualifications *</label>
+                                <input type="text" class="form-control" id="qualification" name="qualification" placeholder="e.g. MBBS, MD, MS" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="license_number" class="form-label">Medical License Number *</label>
+                                <input type="text" class="form-control" id="license_number" name="license_number" required>
+                                <div class="form-text">Your license will be verified before approval</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="bio" class="form-label">Bio/About</label>
+                                <textarea class="form-control" id="bio" name="bio" rows="4" placeholder="Tell patients about yourself, your experience, and your approach to care"></textarea>
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3">Practice Information</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <label for="address" class="form-label">Address</label>
+                                <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="city" class="form-label">City *</label>
+                                <input type="text" class="form-control" id="city" name="city" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="state" class="form-label">State *</label>
+                                <input type="text" class="form-control" id="state" name="state" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="country" class="form-label">Country *</label>
+                                <input type="text" class="form-control" id="country" name="country" value="India" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="postal_code" class="form-label">Postal Code</label>
+                                <input type="text" class="form-control" id="postal_code" name="postal_code">
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3">Appointment Settings</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="consultation_fee" class="form-label">Consultation Fee (₹)</label>
+                                <input type="number" class="form-control" id="consultation_fee" name="consultation_fee" min="0" step="50">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Available Days</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="available_days" value="Mon" id="monday" checked>
+                                        <label class="form-check-label" for="monday">Mon</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="available_days" value="Tue" id="tuesday" checked>
+                                        <label class="form-check-label" for="tuesday">Tue</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="available_days" value="Wed" id="wednesday" checked>
+                                        <label class="form-check-label" for="wednesday">Wed</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="available_days" value="Thu" id="thursday" checked>
+                                        <label class="form-check-label" for="thursday">Thu</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="available_days" value="Fri" id="friday" checked>
+                                        <label class="form-check-label" for="friday">Fri</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="available_days" value="Sat" id="saturday">
+                                        <label class="form-check-label" for="saturday">Sat</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="available_days" value="Sun" id="sunday">
+                                        <label class="form-check-label" for="sunday">Sun</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label for="available_hours" class="form-label">Available Hours</label>
+                                <input type="text" class="form-control" id="available_hours" name="available_hours" placeholder="e.g. 9:00 AM - 1:00 PM, 5:00 PM - 8:00 PM">
+                                <div class="form-text">Enter your consultation hours in a readable format</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('home') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Profile</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

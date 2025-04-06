@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Food Scanner - Medicine AI{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 text-teal fw-bold">Food Scanner</h1>
+            <p class="lead">Scan food to analyze nutritional content and get personalized diet recommendations</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="scan-container">
+                <div class="position-relative">
+                    <video id="videoElement" autoplay muted playsinline class="w-100"></video>
+                    <canvas id="overlay" class="position-absolute top-0 start-0 w-100 h-100" style="display: none;"></canvas>
+                    <div id="loading" class="position-absolute top-0 start-0 w-100 h-100 bg-light d-flex justify-content-center align-items-center" style="display: none; opacity: 0.8;">
+                        <div class="text-center">
+                            <div class="spinner-border text-teal mb-3" role="status"></div>
+                            <p class="mb-0 fw-medium">Analyzing food nutrition...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="scan-controls">
+                    <button id="startCamera" class="btn btn-teal">
+                        <i data-feather="camera" class="me-2"></i> Open Camera
+                    </button>
+                    <button id="captureImage" class="btn btn-outline-teal" disabled>
+                        <i data-feather="aperture" class="me-2"></i> Capture Food
+                    </button>
+                </div>
+                
+                <div class="mt-3">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="input-group mb-3">
+                            <input type="text" id="foodName" name="food_name" class="form-control" placeholder="Food name (e.g., Butter Chicken, Dosa, etc.)">
+                        </div>
+                        <div class="input-group">
+                            <input type="file" id="foodImage" name="food_image" class="form-control" accept="image/*">
+                            <button type="submit" class="btn btn-teal">
+                                <i data-feather="upload" class="me-2"></i> Upload Image
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mb-4 mt-4">
+                <div class="card-header bg-teal text-white">
+                    <h3 class="mb-0 fs-5">How It Works</h3>
+                </div>
+                <div class="card-body">
+                    <ol class="mb-0">
+                        <li class="mb-2">Take a clear photo of your food or upload an existing image</li>
+                        <li class="mb-2">Add the name of the dish for more accurate results</li>
+                        <li class="mb-2">Our AI will analyze the nutritional content</li>
+                        <li class="mb-2">View detailed breakdown of calories and nutrients</li>
+                        <li>Get personalized recommendations for your diet</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-teal text-white">
+                    <h3 class="mb-0 fs-5">Focus on Indian Cuisine</h3>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">Our system is specially optimized for Indian foods, providing accurate nutritional information for traditional dishes like Dosa, Idli, Biryani, Butter Chicken, Chole, and more. Perfect for monitoring your diet while enjoying authentic Indian cuisine.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div id="results" style="display: none;" class="food-scanner-result">
+                <div class="text-center mb-4">
+                    <h3 class="text-teal mb-3" id="analyzedFoodName">Food Analysis</h3>
+                    <div class="food-image-container mb-3">
+                        <img id="resultImage" src="" alt="Analyzed Food" class="img-fluid rounded">
+                    </div>
+                </div>
+                
+                <!-- Nutrition Summary -->
+                <div class="card mb-4">
+                    <div class="card-header bg-teal text-white">
+                        <h3 class="mb-0 fs-5">Nutrition Summary</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="nutrition-chart">
+                            <div class="nutrition-chart-item">
+                                <div class="chart-value" id="caloriesValue">--</div>
+                                <div class="chart-label">Calories</div>
+                            </div>
+                            <div class="nutrition-chart-item">
+                                <div class="chart-value" id="proteinValue">--</div>
+                                <div class="chart-label">Protein (g)</div>
+                            </div>
+                            <div class="nutrition-chart-item">
+                                <div class="chart-value" id="carbsValue">--</div>
+                                <div class="chart-label">Carbs (g)</div>
+                            </div>
+                            <div class="nutrition-chart-item">
+                                <div class="chart-value" id="fatValue">--</div>
+                                <div class="chart-label">Fat (g)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="nutrition-chart mt-3">
+                            <div class="nutrition-chart-item">
+                                <div class="chart-value" id="fiberValue">--</div>
+                                <div class="chart-label">Fiber (g)</div>
+                            </div>
+                            <div class="nutrition-chart-item">
+                                <div class="chart-value" id="sugarValue">--</div>
+                                <div class="chart-label">Sugar (g)</div>
+                            </div>
+                            <div class="nutrition-chart-item">
+                                <div class="chart-value" id="sodiumValue">--</div>
+                                <div class="chart-label">Sodium (mg)</div>
+                            </div>
+                            <div class="nutrition-chart-item">
+                                <div class="chart-value" id="cholesterolValue">--</div>
+                                <div class="chart-label">Cholesterol (mg)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ingredients -->
+                <div class="card mb-4">
+                    <div class="card-header bg-teal text-white">
+                        <h3 class="mb-0 fs-5">Ingredients</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="ingredientsList">Loading ingredients...</div>
+                    </div>
+                </div>
+                
+                <!-- Health Benefits & Concerns -->
+                <div class="card mb-4">
+                    <div class="card-header bg-teal text-white">
+                        <h3 class="mb-0 fs-5">Health Benefits & Concerns</h3>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="text-teal">Benefits</h5>
+                        <div id="benefitsList" class="mb-4">Loading benefits...</div>
+                        
+                        <h5 class="text-teal">Concerns</h5>
+                        <div id="concernsList">Loading concerns...</div>
+                    </div>
+                </div>
+                
+                <!-- Recommendations -->
+                <div class="card">
+                    <div class="card-header bg-teal text-white">
+                        <h3 class="mb-0 fs-5">Dietary Recommendations</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="recommendationsList">Loading recommendations...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="noResults" class="text-center py-5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#20c997" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-coffee mb-3"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                <h3 class="text-teal mb-3">Ready to Scan Food</h3>
+                <p class="text-muted">Take a photo or upload an image of your food to see its nutritional content.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/food_scanner.js') }}"></script>
+{% endblock %}

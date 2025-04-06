@@ -158,3 +158,205 @@ def init_admin_account():
         )
         db.session.add(admin_sub)
         db.session.commit()
+
+def analyze_health_data(scan_data):
+    """
+    Analyze health scan data using OpenAI to generate vital signs and risk assessments
+    """
+    # Check if OpenAI client is available
+    if not openai or not OPENAI_API_KEY:
+        return {
+            "error": "OpenAI API key is not configured. Please contact the administrator to set up the API key."
+        }
+    
+    try:
+        # Simulate the process of analyzing facial scan data
+        # In a real implementation, this would process actual facial scan data
+        # through computer vision algorithms before sending to OpenAI
+        
+        response = openai.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are a health analysis AI system that processes facial scan data to determine vital signs and health metrics.
+                    Based on the provided scan data, generate realistic vital sign measurements and risk assessments.
+                    Your analysis should include:
+                    
+                    1. Vital signs (heart rate, blood pressure, breathing rate, oxygen saturation)
+                    2. Stress indicators (sympathetic stress, parasympathetic activity, PRQ)
+                    3. Blood metrics (hemoglobin, hemoglobin A1c)
+                    4. Overall wellness score (0-100)
+                    5. Risk assessments (ASCVD, hypertension, glucose, cholesterol, tuberculosis)
+                    6. Estimated heart age
+                    7. Brief analysis and recommendations
+                    
+                    Provide realistic values for all metrics that would be consistent with each other.
+                    Return your response in JSON format.
+                    """
+                },
+                {
+                    "role": "user",
+                    "content": f"Analyze this facial scan data and provide health metrics: {json.dumps(scan_data)}"
+                }
+            ],
+            response_format={"type": "json_object"},
+            max_tokens=1000
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error analyzing health data: {str(e)}")
+        return {
+            "error": f"Error analyzing health data: {str(e)}"
+        }
+
+def analyze_food_image(image_path, food_name):
+    """
+    Analyze food image to determine nutritional content
+    """
+    # Check if OpenAI client is available
+    if not openai or not OPENAI_API_KEY:
+        return {
+            "error": "OpenAI API key is not configured. Please contact the administrator to set up the API key."
+        }
+    
+    try:
+        # Convert image to base64 for API submission
+        import base64
+        
+        with open(image_path, "rb") as image_file:
+            base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+        
+        response = openai.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are a nutrition analysis AI. Analyze the provided food image and name to determine:
+                    
+                    1. Accurate nutritional content (calories, protein, carbs, fat, fiber, sugar, sodium, cholesterol)
+                    2. Major ingredients
+                    3. Health benefits
+                    4. Potential allergens
+                    5. Recommendations for healthy consumption
+                    
+                    If this is an Indian dish, provide detailed analysis specific to Indian cuisine.
+                    Return your analysis in JSON format suitable for display in a nutrition app.
+                    """
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": f"Analyze this food image. The food is identified as: {food_name}"},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                    ]
+                }
+            ],
+            max_tokens=1000
+        )
+        
+        # Parse the response to extract nutritional data
+        # For vision models, the response is not JSON formatted by default
+        content = response.choices[0].message.content
+        
+        # Try to extract JSON if present, otherwise use the whole content
+        try:
+            import re
+            json_match = re.search(r'```json\n(.*?)\n```', content, re.DOTALL)
+            if json_match:
+                result = json.loads(json_match.group(1))
+            else:
+                # Try to find any JSON-like structure
+                json_match = re.search(r'({.*})', content, re.DOTALL)
+                if json_match:
+                    result = json.loads(json_match.group(1))
+                else:
+                    # If no JSON found, create structured data from the text
+                    result = {
+                        "food_name": food_name,
+                        "analysis": content,
+                        "calories": extract_number(content, r'calories:?\s*(\d+)'),
+                        "protein": extract_number(content, r'protein:?\s*(\d+\.?\d*)'),
+                        "carbs": extract_number(content, r'carbs:?\s*(\d+\.?\d*)'),
+                        "fat": extract_number(content, r'fat:?\s*(\d+\.?\d*)'),
+                    }
+        except:
+            # Fallback to structured response
+            result = {
+                "food_name": food_name,
+                "analysis": content
+            }
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error analyzing food image: {str(e)}")
+        return {
+            "error": f"Error analyzing food image: {str(e)}"
+        }
+
+def extract_number(text, pattern):
+    """Helper function to extract numbers from text using regex"""
+    import re
+    match = re.search(pattern, text, re.IGNORECASE)
+    if match:
+        try:
+            return float(match.group(1))
+        except:
+            return None
+    return None
+
+def generate_diet_plan(bmi, category, age, gender, is_pregnant, activity_level):
+    """
+    Generate a personalized diet plan based on BMI and other factors
+    """
+    # Check if OpenAI client is available
+    if not openai or not OPENAI_API_KEY:
+        return {
+            "error": "OpenAI API key is not configured. Please contact the administrator to set up the API key."
+        }
+    
+    try:
+        response = openai.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are a nutrition expert AI that creates personalized diet plans.
+                    Create a detailed, structured diet plan based on the provided health information.
+                    Your diet plan should include:
+                    
+                    1. Daily caloric needs and macronutrient breakdown
+                    2. Specific meal recommendations for breakfast, lunch, dinner, and snacks
+                    3. Food to avoid and alternatives
+                    4. Special considerations based on the person's health status
+                    5. Weekly meal plan suggestions with Indian food options
+                    
+                    If the person is pregnant, provide appropriate prenatal nutrition guidelines.
+                    If the person has obesity, include weight management strategies.
+                    Be precise and provide specific portions and nutrition facts where relevant.
+                    
+                    Return your plan in JSON format that can be easily parsed and displayed.
+                    """
+                },
+                {
+                    "role": "user",
+                    "content": f"Create a personalized diet plan for a person with the following characteristics: BMI {bmi} ({category}), Age {age}, Gender: {gender}, Pregnant: {is_pregnant}, Activity Level: {activity_level}"
+                }
+            ],
+            response_format={"type": "json_object"},
+            max_tokens=2000
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error generating diet plan: {str(e)}")
+        return {
+            "error": f"Error generating diet plan: {str(e)}",
+            "general_advice": "Please consult with a healthcare professional for personalized dietary advice."
+        }

@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Reminder{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-primary text-white p-3 rounded-top-4">
+                    <h2 class="card-title h4 mb-0">Add New Reminder</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form action="{{ url_for('add_reminder') }}" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            <div class="form-text">Optional: Add details about this reminder</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reminder_type" class="form-label">Reminder Type *</label>
+                            <select class="form-select" id="reminder_type" name="reminder_type" required>
+                                <option value="medicine">Medicine</option>
+                                <option value="water">Water</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="schedule_time" class="form-label">Time *</label>
+                            <input type="time" class="form-control" id="schedule_time" name="schedule_time" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="repeat_type" class="form-label">Repeat *</label>
+                            <select class="form-select" id="repeat_type" name="repeat_type" required onchange="toggleWeeklyDays()">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="weeklyDaysContainer" style="display: none;">
+                            <label class="form-label">Days of Week</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="repeat_days" value="1" id="monday">
+                                    <label class="form-check-label" for="monday">Monday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="repeat_days" value="2" id="tuesday">
+                                    <label class="form-check-label" for="tuesday">Tuesday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="repeat_days" value="3" id="wednesday">
+                                    <label class="form-check-label" for="wednesday">Wednesday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="repeat_days" value="4" id="thursday">
+                                    <label class="form-check-label" for="thursday">Thursday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="repeat_days" value="5" id="friday">
+                                    <label class="form-check-label" for="friday">Friday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="repeat_days" value="6" id="saturday">
+                                    <label class="form-check-label" for="saturday">Saturday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="repeat_days" value="7" id="sunday">
+                                    <label class="form-check-label" for="sunday">Sunday</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="audio_recording" class="form-label">Voice Reminder</label>
+                            <div class="d-flex flex-column gap-2">
+                                <button type="button" class="btn btn-outline-primary" id="startRecording">
+                                    <i class="fas fa-microphone"></i> Record Voice
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" id="stopRecording" style="display: none;">
+                                    <i class="fas fa-stop"></i> Stop Recording
+                                </button>
+                                <audio id="audioPlayback" controls style="display: none;" class="mt-2"></audio>
+                                <input type="hidden" name="audio_blob" id="audioBlob">
+                                <div class="form-text">Record a voice message that will play when the reminder is triggered</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('reminders') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Add Reminder</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleWeeklyDays() {
+        const repeatType = document.getElementById('repeat_type').value;
+        const weeklyDaysContainer = document.getElementById('weeklyDaysContainer');
+        
+        if (repeatType === 'weekly') {
+            weeklyDaysContainer.style.display = 'block';
+        } else {
+            weeklyDaysContainer.style.display = 'none';
+        }
+    }
+    
+    // Voice recording functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        let mediaRecorder;
+        let audioChunks = [];
+        const startRecordingButton = document.getElementById('startRecording');
+        const stopRecordingButton = document.getElementById('stopRecording');
+        const audioPlayback = document.getElementById('audioPlayback');
+        const audioBlobInput = document.getElementById('audioBlob');
+        
+        startRecordingButton.addEventListener('click', async function() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = function(e) {
+                    audioChunks.push(e.data);
+                };
+                
+                mediaRecorder.onstop = function() {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    audioPlayback.src = audioUrl;
+                    audioPlayback.style.display = 'block';
+                    
+                    // Convert blob to base64 for form submission
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = function() {
+                        const base64data = reader.result;
+                        audioBlobInput.value = base64data;
+                    };
+                    
+                    // Log for debugging
+                    console.log("Audio recording completed");
+                };
+                
+                audioChunks = [];
+                mediaRecorder.start();
+                
+                startRecordingButton.style.display = 'none';
+                stopRecordingButton.style.display = 'block';
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                alert('Failed to access your microphone. Please ensure you have granted permission.');
+            }
+        });
+        
+        stopRecordingButton.addEventListener('click', function() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                
+                // Stop all tracks on the stream
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                
+                startRecordingButton.style.display = 'block';
+                stopRecordingButton.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

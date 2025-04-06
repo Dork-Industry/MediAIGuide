@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Appointment with Dr. {{ doctor.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-primary text-white p-3 rounded-top-4">
+                    <h2 class="card-title h4 mb-0">Book Appointment with Dr. {{ doctor.full_name }}</h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        {% if doctor.profile_image %}
+                            <img src="{{ doctor.profile_image }}" class="rounded-circle me-3" alt="{{ doctor.full_name }}" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                                <span class="fs-4">{{ doctor.full_name[0] }}</span>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h5 class="mb-1">Dr. {{ doctor.full_name }}</h5>
+                            <p class="mb-0 text-muted">{{ doctor.specialty }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <p class="mb-0"><strong>Available days:</strong> {{ doctor.available_days or 'Not specified' }}</p>
+                        <p class="mb-0"><strong>Available hours:</strong> {{ doctor.available_hours or 'Not specified' }}</p>
+                        <p class="mb-0"><strong>Consultation fee:</strong> {% if doctor.consultation_fee %}₹{{ doctor.consultation_fee }}{% else %}Not specified{% endif %}</p>
+                    </div>
+                    
+                    <form action="{{ url_for('book_appointment', doctor_id=doctor.id) }}" method="post">
+                        <div class="mb-3">
+                            <label for="appointment_date" class="form-label">Appointment Date *</label>
+                            <input type="date" class="form-control" id="appointment_date" name="appointment_date" required min="{{ now.strftime('%Y-%m-%d') }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="appointment_time" class="form-label">Appointment Time *</label>
+                            <input type="time" class="form-control" id="appointment_time" name="appointment_time" required>
+                            <div class="form-text">Please select a time within the doctor's available hours</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="appointment_type" class="form-label">Appointment Type *</label>
+                            <select class="form-select" id="appointment_type" name="appointment_type" required>
+                                <option value="online">Online Consultation</option>
+                                <option value="in-person">In-Person Visit</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Reason for Visit / Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Briefly describe your symptoms or reason for consultation"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="shareHealthData" name="share_health_data" value="1" checked>
+                                <label class="form-check-label" for="shareHealthData">
+                                    Share my health records with Dr. {{ doctor.full_name }}
+                                </label>
+                                <div class="form-text">Your health scan results and BMI records will be shared for better consultation</div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <p class="mb-0"><i class="fas fa-info-circle me-2"></i> Your appointment will be pending until confirmed by the doctor.</p>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('doctor_profile', doctor_id=doctor.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Book Appointment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get available days from the doctor info
+        const availableDaysStr = "{{ doctor.available_days or '' }}";
+        const availableDays = availableDaysStr.split(',').map(day => day.trim());
+        
+        // Map day names to day numbers (0 = Sunday, 1 = Monday, etc.)
+        const dayMap = {
+            'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6
+        };
+        
+        // Convert available days to day numbers
+        const availableDayNumbers = availableDays.map(day => dayMap[day]).filter(day => day !== undefined);
+        
+        // Set min date to today
+        const today = new Date();
+        const dateInput = document.getElementById('appointment_date');
+        
+        // Disable dates that are not available
+        dateInput.addEventListener('input', function() {
+            const selectedDate = new Date(this.value);
+            const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            
+            // If no available days are specified, allow all days
+            if (availableDayNumbers.length > 0 && !availableDayNumbers.includes(dayOfWeek)) {
+                alert('Please select a date on the doctor\'s available days: ' + availableDaysStr);
+                this.value = ''; // Clear the invalid date
+            }
+        });
+    });
+</script>
+{% endblock %}
