@@ -4,9 +4,12 @@ import time
 from flask import render_template, request, redirect, url_for, flash, jsonify, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField, DateField, BooleanField, SelectField
+from wtforms.validators import DataRequired, Length, Optional
 from app import app, db
-from models import User, Subscription, SearchHistory, MedicineCache, HealthScan, FoodScan, BMIRecord, Reminder, Doctor, Appointment, DoctorReview, Message
-from utils import get_medicine_info, init_admin_account, record_search, analyze_health_data, analyze_food_image, generate_diet_plan
+from models import User, Subscription, SearchHistory, MedicineCache, HealthScan, FoodScan, BMIRecord, Reminder, Doctor, Appointment, DoctorReview, Message, UserMedication, DrugInteractionCheck
+from utils import get_medicine_info, init_admin_account, record_search, analyze_health_data, analyze_food_image, generate_diet_plan, check_drug_interaction, check_multiple_drug_interactions
 from datetime import datetime, timedelta
 import logging
 
@@ -400,6 +403,199 @@ def not_found_error(error):
 def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
+
+
+# Form classes for Drug Interaction Checker
+class DrugInteractionForm(FlaskForm):
+    medication1 = StringField('First Medication', validators=[DataRequired()])
+    medication2 = StringField('Second Medication', validators=[DataRequired()])
+
+
+class MedicationForm(FlaskForm):
+    medication_name = StringField('Medication Name', validators=[DataRequired(), Length(max=200)])
+    dosage = StringField('Dosage', validators=[Optional(), Length(max=100)])
+    frequency = StringField('Frequency', validators=[Optional(), Length(max=100)])
+    start_date = DateField('Start Date', validators=[Optional()])
+    end_date = DateField('End Date', validators=[Optional()])
+    reason = StringField('Reason', validators=[Optional(), Length(max=255)])
+    is_active = BooleanField('Currently Taking', default=True)
+    notes = TextAreaField('Notes', validators=[Optional()])
+
+
+# Drug Interaction Routes
+@app.route('/drug-interactions', methods=['GET', 'POST'])
+@login_required
+def drug_interactions():
+    """Drug Interaction Checker Page"""
+    form = DrugInteractionForm()
+    medication_form = MedicationForm()
+    results = None
+    
+    if request.method == 'POST':
+        # Get all medication fields from the form
+        medications = []
+        for key in request.form:
+            if key.startswith('medication') and request.form[key].strip():
+                medications.append(request.form[key].strip())
+        
+        if len(medications) < 2:
+            flash('Please enter at least two medications to check for interactions.', 'warning')
+            return redirect(url_for('drug_interactions'))
+            
+        # Check for interactions between all medications
+        results = check_multiple_drug_interactions(medications, current_user)
+    
+    return render_template('drug_interactions.html', 
+                           title='Drug Interaction Checker',
+                           form=form,
+                           medication_form=medication_form,
+                           results=results,
+                           user=current_user)
+
+
+@app.route('/check-saved-medications', methods=['POST'])
+@login_required
+def check_saved_medications():
+    """Check interactions between saved medications"""
+    form = DrugInteractionForm()
+    
+    # Get selected medications from the form
+    medications = request.form.getlist('saved_medications')
+    
+    if len(medications) < 2:
+        flash('Please select at least two medications to check for interactions.', 'warning')
+        return redirect(url_for('drug_interactions'))
+    
+    # Check for interactions
+    results = check_multiple_drug_interactions(medications, current_user)
+    
+    # Render the same template with results
+    return render_template('drug_interactions.html',
+                           title='Drug Interaction Checker',
+                           form=form,
+                           medication_form=MedicationForm(),
+                           results=results,
+                           user=current_user)
+
+
+@app.route('/add-medication', methods=['POST'])
+@login_required
+def add_medication():
+    """Add a medication to user's list"""
+    form = MedicationForm()
+    
+    if form.validate_on_submit():
+        # Convert form data
+        start_date = form.start_date.data
+        end_date = form.end_date.data
+        
+        # Create new medication record
+        medication = UserMedication(
+            user_id=current_user.id,
+            medication_name=form.medication_name.data,
+            dosage=form.dosage.data,
+            frequency=form.frequency.data,
+            start_date=start_date,
+            end_date=end_date,
+            reason=form.reason.data,
+            is_active=form.is_active.data,
+            notes=form.notes.data
+        )
+        
+        db.session.add(medication)
+        db.session.commit()
+        
+        flash(f'Medication "{form.medication_name.data}" added successfully.', 'success')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'Error in {getattr(form, field).label.text}: {error}', 'danger')
+    
+    return redirect(url_for('drug_interactions'))
+
+
+@app.route('/edit-medication', methods=['POST'])
+@login_required
+def edit_medication():
+    """Edit an existing medication"""
+    medication_id = request.form.get('medication_id')
+    if not medication_id:
+        flash('Medication ID is required.', 'danger')
+        return redirect(url_for('drug_interactions'))
+    
+    medication = db.session.query(UserMedication).filter_by(id=medication_id, user_id=current_user.id).first()
+    if not medication:
+        flash('Medication not found.', 'danger')
+        return redirect(url_for('drug_interactions'))
+    
+    # Update medication fields
+    medication.medication_name = request.form.get('medication_name')
+    medication.dosage = request.form.get('dosage')
+    medication.frequency = request.form.get('frequency')
+    
+    # Parse dates
+    start_date = request.form.get('start_date')
+    if start_date:
+        medication.start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    else:
+        medication.start_date = None
+        
+    end_date = request.form.get('end_date')
+    if end_date:
+        medication.end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    else:
+        medication.end_date = None
+    
+    medication.reason = request.form.get('reason')
+    medication.is_active = 'is_active' in request.form
+    medication.notes = request.form.get('notes')
+    medication.updated_at = datetime.utcnow()
+    
+    db.session.commit()
+    
+    flash('Medication updated successfully.', 'success')
+    return redirect(url_for('drug_interactions'))
+
+
+@app.route('/delete-medication', methods=['POST'])
+@login_required
+def delete_medication():
+    """Delete a medication"""
+    medication_id = request.form.get('medication_id')
+    if not medication_id:
+        flash('Medication ID is required.', 'danger')
+        return redirect(url_for('drug_interactions'))
+    
+    medication = db.session.query(UserMedication).filter_by(id=medication_id, user_id=current_user.id).first()
+    if not medication:
+        flash('Medication not found.', 'danger')
+        return redirect(url_for('drug_interactions'))
+    
+    db.session.delete(medication)
+    db.session.commit()
+    
+    flash('Medication deleted successfully.', 'success')
+    return redirect(url_for('drug_interactions'))
+
+
+@app.route('/api/drug-interaction', methods=['POST'])
+@login_required
+def api_drug_interaction():
+    """API endpoint for drug interaction check"""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    drug1 = data.get('drug1')
+    drug2 = data.get('drug2')
+    
+    if not drug1 or not drug2:
+        return jsonify({"error": "Two medications are required"}), 400
+    
+    # Check interaction
+    interaction = check_drug_interaction(drug1, drug2, current_user)
+    
+    return jsonify(interaction)
 
 # Health Scanner Routes
 @app.route('/health-scanner')

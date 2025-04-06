@@ -126,6 +126,88 @@ class MedicineCache(db.Model):
             db.session.add(cache_entry)
         db.session.commit()
 
+
+class UserMedication(db.Model):
+    """Model for storing a user's medications"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    medication_name = db.Column(db.String(200), nullable=False, index=True)
+    dosage = db.Column(db.String(100), nullable=True)
+    frequency = db.Column(db.String(100), nullable=True)  # e.g., "Once daily", "Twice daily"
+    start_date = db.Column(db.Date, nullable=True)
+    end_date = db.Column(db.Date, nullable=True)
+    reason = db.Column(db.String(255), nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship to user
+    user = db.relationship('User', backref=db.backref('medications', lazy='dynamic'))
+
+
+class DrugInteractionCache(db.Model):
+    """Cache for drug interaction data to reduce API calls"""
+    id = db.Column(db.Integer, primary_key=True)
+    drug_pair = db.Column(db.String(400), unique=True, nullable=False, index=True)  # Format: "drug1:drug2" (alphabetically sorted)
+    interaction_data = db.Column(db.Text, nullable=False)  # JSON data containing interaction information
+    severity = db.Column(db.String(20), nullable=True)  # 'mild', 'moderate', 'severe'
+    description = db.Column(db.Text, nullable=True)
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    @staticmethod
+    def get_cached_interaction(drug1, drug2):
+        """Get cached interaction data for two drugs"""
+        # Sort drug names alphabetically for consistent storage
+        drug_names = sorted([drug1, drug2])
+        drug_pair = f"{drug_names[0]}:{drug_names[1]}"
+        
+        cache_entry = db.session.query(DrugInteractionCache).filter_by(drug_pair=drug_pair).first()
+        if cache_entry:
+            # Check if cache is older than a month
+            cache_age = datetime.utcnow() - cache_entry.last_updated
+            if cache_age.days < 30:  # Cache valid for a month
+                return cache_entry.interaction_data
+        return None
+    
+    @staticmethod
+    def update_cache(drug1, drug2, interaction_data, severity=None, description=None):
+        """Update the interaction cache for two drugs"""
+        # Sort drug names alphabetically for consistent storage
+        drug_names = sorted([drug1, drug2])
+        drug_pair = f"{drug_names[0]}:{drug_names[1]}"
+        
+        cache_entry = db.session.query(DrugInteractionCache).filter_by(drug_pair=drug_pair).first()
+        if cache_entry:
+            cache_entry.interaction_data = interaction_data
+            cache_entry.severity = severity
+            cache_entry.description = description
+            cache_entry.last_updated = datetime.utcnow()
+        else:
+            cache_entry = DrugInteractionCache(
+                drug_pair=drug_pair, 
+                interaction_data=interaction_data,
+                severity=severity,
+                description=description
+            )
+            db.session.add(cache_entry)
+        db.session.commit()
+        
+        return cache_entry
+
+
+class DrugInteractionCheck(db.Model):
+    """Record of drug interaction checks performed by users"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    medications = db.Column(db.Text, nullable=False)  # JSON list of medications checked
+    has_interactions = db.Column(db.Boolean, default=False)
+    highest_severity = db.Column(db.String(20), nullable=True)  # 'mild', 'moderate', 'severe'
+    check_date = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship to user
+    user = db.relationship('User', backref=db.backref('interaction_checks', lazy='dynamic'))
+
 class HealthScan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

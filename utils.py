@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 from openai import OpenAI
 from app import db
-from models import MedicineCache, SearchHistory
+from models import MedicineCache, SearchHistory, DrugInteractionCache, DrugInteractionCheck, UserMedication
 
 # Configure OpenAI client 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -161,6 +161,197 @@ def init_admin_account():
         )
         db.session.add(admin_sub)
         db.session.commit()
+
+
+def check_drug_interaction(drug1, drug2, user=None):
+    """
+    Check for potential interactions between two drugs using OpenAI API with caching
+    
+    Args:
+        drug1 (str): First medication name
+        drug2 (str): Second medication name
+        user (User, optional): User requesting the interaction check
+        
+    Returns:
+        dict: Dictionary containing interaction details
+    """
+    # Check cache first
+    cached_data = DrugInteractionCache.get_cached_interaction(drug1, drug2)
+    if cached_data:
+        return json.loads(cached_data)
+    
+    # Check if OpenAI client is available
+    if not openai or not OPENAI_API_KEY:
+        logger.warning(f"OPENAI_API_KEY is not configured. Drug interaction check is limited.")
+        
+        return {
+            "drug1": drug1,
+            "drug2": drug2,
+            "has_interaction": None,
+            "severity": None,
+            "mechanism": None,
+            "effects": None,
+            "recommendations": None,
+            "error": "OpenAI API key is not configured. Please contact the administrator to enable drug interaction features."
+        }
+    
+    # No cache hit, use OpenAI
+    try:
+        response = openai.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are a pharmaceutical expert specializing in drug interactions.
+                    Analyze potential interactions between the two drugs provided.
+                    
+                    Your response should be comprehensive and include:
+                    1. Whether the drugs have a known interaction
+                    2. The severity of the interaction (none, mild, moderate, severe)
+                    3. The mechanism of interaction
+                    4. Potential effects of the interaction
+                    5. Recommendations for patients
+                    6. A disclaimer about consulting healthcare professionals
+                    
+                    If you don't have sufficient information about one or both drugs, clearly state this.
+                    
+                    Return your response in JSON format with the following structure:
+                    {
+                        "drug1": "First drug name",
+                        "drug2": "Second drug name",
+                        "has_interaction": true/false/null (null if unknown),
+                        "severity": "none/mild/moderate/severe/unknown",
+                        "mechanism": "Description of interaction mechanism",
+                        "effects": ["list", "of", "potential", "effects"],
+                        "recommendations": ["list", "of", "recommendations"],
+                        "disclaimer": "Standard medical disclaimer"
+                    }
+                    """
+                },
+                {
+                    "role": "user",
+                    "content": f"Check for interactions between {drug1} and {drug2}"
+                }
+            ],
+            response_format={"type": "json_object"},
+            max_tokens=1000
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        
+        # Determine severity for database storage
+        severity = result.get("severity", "unknown").lower()
+        if severity not in ["none", "mild", "moderate", "severe"]:
+            severity = "unknown"
+            
+        # Create a description for database storage
+        description = None
+        if result.get("effects") and isinstance(result["effects"], list):
+            description = "; ".join(result["effects"])
+        
+        # Cache the result
+        DrugInteractionCache.update_cache(
+            drug1, 
+            drug2, 
+            json.dumps(result),
+            severity,
+            description
+        )
+        
+        # Record interaction check if user is provided
+        if user:
+            check_record = DrugInteractionCheck(
+                user_id=user.id,
+                medications=json.dumps([drug1, drug2]),
+                has_interactions=result.get("has_interaction", False),
+                highest_severity=severity
+            )
+            db.session.add(check_record)
+            db.session.commit()
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error checking drug interaction: {str(e)}")
+        return {
+            "drug1": drug1,
+            "drug2": drug2,
+            "has_interaction": None,
+            "severity": "unknown",
+            "mechanism": "Error retrieving interaction information",
+            "effects": ["Information could not be retrieved"],
+            "recommendations": ["Consult your healthcare provider for accurate information"],
+            "disclaimer": "Always consult healthcare professionals for medical advice",
+            "error": str(e)
+        }
+
+
+def check_multiple_drug_interactions(medications, user=None):
+    """
+    Check for interactions between multiple medications
+    
+    Args:
+        medications (list): List of medication names
+        user (User, optional): User requesting the interaction check
+        
+    Returns:
+        dict: Dictionary containing all interaction details
+    """
+    if not medications or len(medications) < 2:
+        return {
+            "message": "At least two medications are required to check for interactions",
+            "interactions": [],
+            "highest_severity": "none",
+            "has_interactions": False
+        }
+    
+    interactions = []
+    highest_severity_rank = 0  # 0=none, 1=mild, 2=moderate, 3=severe
+    severity_map = {"none": 0, "mild": 1, "moderate": 2, "severe": 3}
+    has_interactions = False
+    
+    # Check interactions between each pair of medications
+    for i in range(len(medications)):
+        for j in range(i+1, len(medications)):
+            drug1 = medications[i]
+            drug2 = medications[j]
+            
+            interaction = check_drug_interaction(drug1, drug2)
+            interactions.append(interaction)
+            
+            # Update highest severity and interaction flag
+            severity = interaction.get("severity", "unknown").lower()
+            severity_rank = severity_map.get(severity, 0)
+            
+            if interaction.get("has_interaction", False):
+                has_interactions = True
+                highest_severity_rank = max(highest_severity_rank, severity_rank)
+    
+    # Map severity rank back to string
+    highest_severity = "none"
+    for sev, rank in severity_map.items():
+        if rank == highest_severity_rank:
+            highest_severity = sev
+            break
+    
+    # Record interaction check if user is provided
+    if user:
+        check_record = DrugInteractionCheck(
+            user_id=user.id,
+            medications=json.dumps(medications),
+            has_interactions=has_interactions,
+            highest_severity=highest_severity
+        )
+        db.session.add(check_record)
+        db.session.commit()
+    
+    return {
+        "medications": medications,
+        "interactions": interactions,
+        "highest_severity": highest_severity,
+        "has_interactions": has_interactions
+    }
+
 
 def analyze_health_data(image_path, scan_type='face'):
     """

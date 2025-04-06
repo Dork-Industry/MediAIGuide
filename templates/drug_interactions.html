@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% block title %}Drug Interaction Checker{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    {% include 'includes/flash_messages.html' %}
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0"><i class="fas fa-pills me-2"></i>Drug Interaction Checker</h2>
+        </div>
+        <div class="card-body">
+            <p class="lead">Check for potential interactions between medications to ensure your safety.</p>
+            
+            <form id="interaction-form" method="POST" action="{{ url_for('drug_interactions') }}">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    <label for="medication1" class="form-label">First Medication</label>
+                    {{ form.medication1(class="form-control", placeholder="Enter medication name") }}
+                </div>
+                
+                <div id="medication-fields">
+                    <div class="mb-3">
+                        <label for="medication2" class="form-label">Second Medication</label>
+                        {{ form.medication2(class="form-control", placeholder="Enter medication name") }}
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-3">
+                    <button type="button" id="add-medication" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-plus"></i> Add Medication
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Check Interactions
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if user.medications.count() > 0 %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <h3 class="h5 mb-0">Your Saved Medications</h3>
+        </div>
+        <div class="card-body">
+            <p>Check interactions between your saved medications:</p>
+            <form method="POST" action="{{ url_for('check_saved_medications') }}">
+                {{ form.hidden_tag() }}
+                <div class="row">
+                    {% for medication in user.medications %}
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="saved_medications" 
+                                value="{{ medication.medication_name }}" id="med-{{ medication.id }}">
+                            <label class="form-check-label" for="med-{{ medication.id }}">
+                                {{ medication.medication_name }}
+                                {% if medication.dosage %}({{ medication.dosage }}){% endif %}
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="btn btn-info text-white mt-2">
+                    <i class="fas fa-check-circle"></i> Check Selected Medications
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if results %}
+    <div class="card shadow mb-4">
+        <div class="card-header {% if results.has_interactions %}bg-warning{% else %}bg-success{% endif %} text-white">
+            <h3 class="h5 mb-0">
+                {% if results.has_interactions %}
+                <i class="fas fa-exclamation-triangle me-2"></i>Potential Interactions Found
+                {% else %}
+                <i class="fas fa-check-circle me-2"></i>No Interactions Found
+                {% endif %}
+            </h3>
+        </div>
+        <div class="card-body">
+            {% if 'interactions' in results %}
+                <!-- Multiple medication check results -->
+                <div class="alert {% if results.has_interactions %}alert-warning{% else %}alert-success{% endif %} mb-4">
+                    <h4 class="alert-heading">
+                        {% if results.has_interactions %}
+                            Interactions detected with highest severity: 
+                            <span class="badge {% if results.highest_severity == 'severe' %}bg-danger{% elif results.highest_severity == 'moderate' %}bg-warning text-dark{% elif results.highest_severity == 'mild' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                {{ results.highest_severity|title }}
+                            </span>
+                        {% else %}
+                            No interactions detected between the selected medications.
+                        {% endif %}
+                    </h4>
+                    <p>Checked interactions between {% for med in results.medications %}{{ med }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+                </div>
+                
+                <div class="accordion" id="interactionsAccordion">
+                    {% for interaction in results.interactions %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ loop.index }}">
+                            <button class="accordion-button {% if not interaction.has_interaction %}collapsed{% endif %}" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" 
+                                aria-expanded="{% if interaction.has_interaction %}true{% else %}false{% endif %}" aria-controls="collapse{{ loop.index }}">
+                                <div class="d-flex justify-content-between w-100">
+                                    <span><strong>{{ interaction.drug1 }}</strong> + <strong>{{ interaction.drug2 }}</strong></span>
+                                    {% if interaction.has_interaction %}
+                                        <span class="badge {% if interaction.severity == 'severe' %}bg-danger{% elif interaction.severity == 'moderate' %}bg-warning text-dark{% elif interaction.severity == 'mild' %}bg-info text-dark{% else %}bg-success{% endif %} ms-2">
+                                            {{ interaction.severity|title if interaction.severity else 'Unknown' }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success ms-2">No Interaction</span>
+                                    {% endif %}
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if interaction.has_interaction %}show{% endif %}" 
+                            aria-labelledby="heading{{ loop.index }}" data-bs-parent="#interactionsAccordion">
+                            <div class="accordion-body">
+                                {% if interaction.error %}
+                                    <div class="alert alert-warning">{{ interaction.error }}</div>
+                                {% else %}
+                                    {% if interaction.mechanism %}
+                                    <h5>Mechanism of Interaction</h5>
+                                    <p>{{ interaction.mechanism }}</p>
+                                    {% endif %}
+                                    
+                                    {% if interaction.effects %}
+                                    <h5>Potential Effects</h5>
+                                    <ul>
+                                        {% for effect in interaction.effects %}
+                                        <li>{{ effect }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                    
+                                    {% if interaction.recommendations %}
+                                    <h5>Recommendations</h5>
+                                    <ul>
+                                        {% for rec in interaction.recommendations %}
+                                        <li>{{ rec }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                    
+                                    {% if interaction.disclaimer %}
+                                    <div class="alert alert-info mt-3">
+                                        <i class="fas fa-info-circle me-2"></i> {{ interaction.disclaimer }}
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+                                
+                                <div class="mt-3">
+                                    {% if current_user.is_authenticated and current_user.is_doctor %}
+                                    <button class="btn btn-sm btn-outline-primary" type="button" 
+                                        onclick="saveToPrescriptionNotes('{{ interaction.drug1 }}', '{{ interaction.drug2 }}')">
+                                        <i class="fas fa-save me-1"></i> Save to Prescription Notes
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Single interaction check result -->
+                <div class="mb-4">
+                    <h4>
+                        {{ results.drug1 }} + {{ results.drug2 }}
+                        {% if results.has_interaction %}
+                            <span class="badge {% if results.severity == 'severe' %}bg-danger{% elif results.severity == 'moderate' %}bg-warning text-dark{% elif results.severity == 'mild' %}bg-info text-dark{% else %}bg-success{% endif %} ms-2">
+                                {{ results.severity|title if results.severity else 'Unknown' }}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success ms-2">No Interaction</span>
+                        {% endif %}
+                    </h4>
+                    
+                    {% if results.error %}
+                        <div class="alert alert-warning">{{ results.error }}</div>
+                    {% else %}
+                        {% if results.mechanism %}
+                        <h5>Mechanism of Interaction</h5>
+                        <p>{{ results.mechanism }}</p>
+                        {% endif %}
+                        
+                        {% if results.effects %}
+                        <h5>Potential Effects</h5>
+                        <ul>
+                            {% for effect in results.effects %}
+                            <li>{{ effect }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        
+                        {% if results.recommendations %}
+                        <h5>Recommendations</h5>
+                        <ul>
+                            {% for rec in results.recommendations %}
+                            <li>{{ rec }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        
+                        {% if results.disclaimer %}
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle me-2"></i> {{ results.disclaimer }}
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="h5 mb-0"><i class="fas fa-clipboard-list me-2"></i>My Medications</h3>
+        </div>
+        <div class="card-body">
+            <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addMedicationModal">
+                <i class="fas fa-plus"></i> Add Medication
+            </button>
+            
+            {% if user.medications.count() == 0 %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> You haven't added any medications yet. Add your medications to easily check for interactions.
+            </div>
+            {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Medication</th>
+                            <th>Dosage</th>
+                            <th>Frequency</th>
+                            <th>Start Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for medication in user.medications %}
+                        <tr>
+                            <td>{{ medication.medication_name }}</td>
+                            <td>{{ medication.dosage or 'Not specified' }}</td>
+                            <td>{{ medication.frequency or 'Not specified' }}</td>
+                            <td>{{ medication.start_date.strftime('%Y-%m-%d') if medication.start_date else 'Not specified' }}</td>
+                            <td>
+                                {% if medication.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        onclick="editMedication({{ medication.id }}, '{{ medication.medication_name }}', 
+                                        '{{ medication.dosage or '' }}', '{{ medication.frequency or '' }}', 
+                                        '{{ medication.start_date.strftime('%Y-%m-%d') if medication.start_date else '' }}', 
+                                        '{{ medication.end_date.strftime('%Y-%m-%d') if medication.end_date else '' }}', 
+                                        '{{ medication.reason or '' }}', {{ 'true' if medication.is_active else 'false' }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteMedication({{ medication.id }}, '{{ medication.medication_name }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Medication Modal -->
+<div class="modal fade" id="addMedicationModal" tabindex="-1" aria-labelledby="addMedicationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMedicationModalLabel">Add Medication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_medication') }}">
+                {{ medication_form.hidden_tag() }}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="medication_name" class="form-label">Medication Name *</label>
+                        {{ medication_form.medication_name(class="form-control", required="required") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="dosage" class="form-label">Dosage</label>
+                        {{ medication_form.dosage(class="form-control", placeholder="e.g., 10mg") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="frequency" class="form-label">Frequency</label>
+                        {{ medication_form.frequency(class="form-control", placeholder="e.g., Once daily") }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="start_date" class="form-label">Start Date</label>
+                                {{ medication_form.start_date(class="form-control", type="date") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="end_date" class="form-label">End Date</label>
+                                {{ medication_form.end_date(class="form-control", type="date") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">Reason</label>
+                        {{ medication_form.reason(class="form-control", placeholder="Why are you taking this medication?") }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ medication_form.is_active(class="form-check-input") }}
+                        <label class="form-check-label" for="is_active">Currently Taking</label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        {{ medication_form.notes(class="form-control", rows="3") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Medication</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Medication Modal -->
+<div class="modal fade" id="editMedicationModal" tabindex="-1" aria-labelledby="editMedicationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editMedicationModalLabel">Edit Medication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('edit_medication') }}">
+                {{ medication_form.hidden_tag() }}
+                <input type="hidden" name="medication_id" id="edit_medication_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_medication_name" class="form-label">Medication Name *</label>
+                        <input type="text" class="form-control" id="edit_medication_name" name="medication_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_dosage" class="form-label">Dosage</label>
+                        <input type="text" class="form-control" id="edit_dosage" name="dosage" placeholder="e.g., 10mg">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_frequency" class="form-label">Frequency</label>
+                        <input type="text" class="form-control" id="edit_frequency" name="frequency" placeholder="e.g., Once daily">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_start_date" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="edit_start_date" name="start_date">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_end_date" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="edit_end_date" name="end_date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_reason" class="form-label">Reason</label>
+                        <input type="text" class="form-control" id="edit_reason" name="reason" placeholder="Why are you taking this medication?">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="edit_is_active" name="is_active">
+                        <label class="form-check-label" for="edit_is_active">Currently Taking</label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="edit_notes" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Medication</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Medication Modal -->
+<div class="modal fade" id="deleteMedicationModal" tabindex="-1" aria-labelledby="deleteMedicationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteMedicationModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <span id="delete_medication_name" class="fw-bold"></span>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('delete_medication') }}">
+                    {{ medication_form.hidden_tag() }}
+                    <input type="hidden" name="medication_id" id="delete_medication_id">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add new medication field
+    document.getElementById('add-medication').addEventListener('click', function() {
+        const medicationFields = document.getElementById('medication-fields');
+        const fieldCount = medicationFields.children.length + 1;
+        
+        if (fieldCount >= 10) {
+            alert('Maximum of 10 medications can be checked at once.');
+            return;
+        }
+        
+        const newField = document.createElement('div');
+        newField.className = 'mb-3';
+        newField.innerHTML = `
+            <div class="d-flex">
+                <div class="flex-grow-1">
+                    <label for="medication${fieldCount+1}" class="form-label">Additional Medication</label>
+                    <input type="text" class="form-control" id="medication${fieldCount+1}" 
+                           name="medication${fieldCount+1}" placeholder="Enter medication name">
+                </div>
+                <div class="ms-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-danger mb-0" onclick="removeField(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        medicationFields.appendChild(newField);
+    });
+    
+    // Remove medication field
+    function removeField(button) {
+        const fieldDiv = button.closest('.mb-3');
+        fieldDiv.parentNode.removeChild(fieldDiv);
+    }
+    
+    // Edit medication
+    function editMedication(id, name, dosage, frequency, startDate, endDate, reason, isActive) {
+        document.getElementById('edit_medication_id').value = id;
+        document.getElementById('edit_medication_name').value = name;
+        document.getElementById('edit_dosage').value = dosage;
+        document.getElementById('edit_frequency').value = frequency;
+        document.getElementById('edit_start_date').value = startDate;
+        document.getElementById('edit_end_date').value = endDate;
+        document.getElementById('edit_reason').value = reason;
+        document.getElementById('edit_is_active').checked = isActive;
+        
+        // Open the modal
+        new bootstrap.Modal(document.getElementById('editMedicationModal')).show();
+    }
+    
+    // Delete medication
+    function deleteMedication(id, name) {
+        document.getElementById('delete_medication_id').value = id;
+        document.getElementById('delete_medication_name').textContent = name;
+        
+        // Open the modal
+        new bootstrap.Modal(document.getElementById('deleteMedicationModal')).show();
+    }
+    
+    // Save to prescription notes (for doctors)
+    function saveToPrescriptionNotes(drug1, drug2) {
+        // This function would be implemented to allow doctors to save interaction info
+        alert(`Interaction between ${drug1} and ${drug2} saved to prescription notes.`);
+    }
+</script>
+{% endblock %}
