@@ -807,6 +807,23 @@ def delete_reminder(reminder_id):
     flash('Reminder deleted successfully!', 'success')
     return redirect(url_for('reminders'))
 
+@app.route('/reminders/<int:reminder_id>/toggle-active', methods=['POST'])
+@login_required
+def toggle_reminder_active(reminder_id):
+    """Toggle the active status of a reminder"""
+    reminder = db.session.query(Reminder).filter_by(id=reminder_id, user_id=current_user.id).first_or_404()
+    
+    try:
+        data = request.get_json()
+        active = data.get('active', not reminder.active)
+        
+        reminder.active = active
+        db.session.commit()
+        
+        return jsonify({'success': True, 'active': reminder.active})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/reminders/active')
 @login_required
 def get_active_reminders():

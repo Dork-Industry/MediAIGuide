@@ -16,6 +16,9 @@ MODEL_NAME = "gpt-4o"
 openai = None
 if OPENAI_API_KEY:
     openai = OpenAI(api_key=OPENAI_API_KEY)
+else:
+    logger = logging.getLogger(__name__)
+    logger.warning("OPENAI_API_KEY is not configured. AI features will be limited.")
 logger = logging.getLogger(__name__)
 
 def get_medicine_info(medicine_name, user=None):
@@ -172,95 +175,15 @@ def analyze_health_data(image_path, scan_type='face'):
     """
     # Check if OpenAI client is available
     if not openai or not OPENAI_API_KEY:
-        # Generate realistic mock data for testing
-        import random
+        logger.warning(f"OPENAI_API_KEY is not available. Health scan feature is limited.")
         
-        # Base results for all scan types
-        base_results = {
-            "wellness_score": random.randint(70, 95),
+        # Return a clear message that API key is needed
+        return {
+            "api_key_missing": True,
             "scan_type": scan_type,
-            "recommendations": [
-                "Maintain a balanced diet rich in fruits, vegetables, and whole grains",
-                "Engage in moderate aerobic exercise for at least 30 minutes daily",
-                "Practice stress reduction techniques like meditation or deep breathing",
-                "Ensure adequate sleep of 7-8 hours per night",
-                "Stay hydrated by drinking 2-3 liters of water daily"
-            ]
+            "message": "OpenAI API key is not configured. Please contact the administrator to enable health scanning features.",
+            "error": "API key not configured"
         }
-        
-        # Specific results based on scan type
-        if scan_type == 'face':
-            return {
-                **base_results,
-                "heart_rate": round(random.uniform(60, 100), 1),
-                "blood_pressure_systolic": round(random.uniform(110, 140), 0),
-                "blood_pressure_diastolic": round(random.uniform(70, 90), 0),
-                "breathing_rate": round(random.uniform(12, 20), 1),
-                "oxygen_saturation": round(random.uniform(95, 100), 1),
-                "sympathetic_stress": round(random.uniform(20, 60), 1),
-                "parasympathetic_activity": round(random.uniform(40, 80), 1),
-                "prq": round(random.uniform(1.0, 2.5), 2),
-                "hemoglobin": round(random.uniform(13.5, 17.0), 1),
-                "hemoglobin_a1c": round(random.uniform(4.5, 6.0), 1),
-                "ascvd_risk": round(random.uniform(2, 8), 1),
-                "hypertension_risk": round(random.uniform(2, 10), 1),
-                "glucose_risk": round(random.uniform(1, 6), 1),
-                "cholesterol_risk": round(random.uniform(2, 9), 1),
-                "tuberculosis_risk": round(random.uniform(0.1, 2), 1),
-                "heart_age": round(random.uniform(25, 45), 0),
-            }
-        elif scan_type == 'tongue':
-            return {
-                **base_results,
-                "tongue_color": random.choice(["Pale Pink", "Red", "Dark Red", "Purple", "Pale White"]),
-                "tongue_coating": random.choice(["Thin White", "Thick White", "Yellow", "None", "Thin Yellow"]),
-                "tongue_shape": random.choice(["Normal", "Swollen", "Thin", "Cracked", "Scalloped"]),
-                "tcm_diagnosis": random.choice(["Qi Deficiency", "Yin Deficiency", "Yang Deficiency", "Heat", "Dampness"]),
-                "vitamin_deficiency": random.choice(["None detected", "B12", "Iron", "Folate", "B12, Iron"]),
-                "infection_indicator": random.choice(["None detected", "Mild thrush", "Bacterial infection", "No signs of infection"]),
-                "recommendations": [
-                    "Consider increasing iron-rich foods in your diet",
-                    "Maintain good oral hygiene including tongue cleaning",
-                    "Stay well-hydrated throughout the day",
-                    "Consider consulting with a nutritionist about vitamin supplementation",
-                    "Include more leafy greens and whole foods in your diet"
-                ]
-            }
-        elif scan_type == 'eye':
-            return {
-                **base_results,
-                "sclera_color": random.choice(["Normal white", "Slightly yellow", "Pink tinged", "Clear"]),
-                "conjunctiva_color": random.choice(["Pink", "Pale", "Reddened", "Normal"]),
-                "eye_redness": round(random.uniform(5, 40), 1),
-                "pupil_reactivity": random.choice(["Normal", "Sluggish", "Highly responsive", "Slightly delayed"]),
-                "eye_condition": random.choice(["Healthy", "Mild allergic conjunctivitis", "Dry eye syndrome", "No abnormalities detected"]),
-                "recommendations": [
-                    "Take regular breaks when using digital screens (20-20-20 rule)",
-                    "Ensure adequate lighting when reading or working",
-                    "Consider foods rich in lutein and zeaxanthin for eye health",
-                    "Use artificial tears if experiencing dryness",
-                    "Schedule a routine eye examination with an optometrist"
-                ]
-            }
-        elif scan_type == 'skin':
-            return {
-                **base_results,
-                "skin_color": random.choice(["Normal", "Reddened", "Pale", "Slightly yellow", "Even"]),
-                "skin_texture": random.choice(["Smooth", "Dry", "Rough", "Normal", "Even"]),
-                "rash_detection": random.choice([True, False]),
-                "rash_pattern": random.choice(["None", "Macular", "Papular", "Vesicular", "N/A"]) if random.choice([True, False]) else "N/A",
-                "skin_condition": random.choice(["Healthy", "Mild eczema", "Mild acne", "Dermatitis", "No concerning findings"]),
-                "recommendations": [
-                    "Maintain a consistent skincare routine with gentle products",
-                    "Use broad-spectrum sunscreen daily, even on cloudy days",
-                    "Stay well-hydrated for skin health",
-                    "Consider foods rich in antioxidants and omega-3 fatty acids",
-                    "Consult with a dermatologist for personalized advice"
-                ]
-            }
-        else:
-            # Default case - shouldn't happen with validation
-            return base_results
 
     # Format the image for analysis
     try:

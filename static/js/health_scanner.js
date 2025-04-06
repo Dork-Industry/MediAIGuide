@@ -147,9 +147,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Display the results
+    // Display the results
     function displayResults(data) {
         // Show the results section
-        resultsSection.style.display = 'block';
+        resultsSection.style.display = "block";
+        
+        // Check if API key is missing
+        if (data.api_key_missing) {
+            document.getElementById("wellnessScoreValue").textContent = "--";
+            document.getElementById("wellnessSummary").textContent = data.message || "OpenAI API key is not configured. Please contact the administrator.";
+            
+            // Hide all result containers
+            document.getElementById("faceResultsContainer").style.display = "none";
+            document.getElementById("tongueResultsContainer").style.display = "none";
+            document.getElementById("eyeResultsContainer").style.display = "none";
+            document.getElementById("skinResultsContainer").style.display = "none";
+            document.getElementById("healthRisksContainer").style.display = "none";
+            document.getElementById("ageComparisonContainer").style.display = "none";
+            document.getElementById("healthNotesContainer").style.display = "none";
+            return;
+        }
+        
+        // Display wellness score with animation
+        const wellnessScore = Math.round(data.wellness_score || 0);
+        animateNumber("wellnessScoreValue", 0, wellnessScore, 1500);
+        
+        // Set wellness summary
+        document.getElementById("wellnessSummary").textContent = data.summary || "No summary available.";
+        
+        // Hide all result containers first
+        document.getElementById("faceResultsContainer").style.display = "none";
+        document.getElementById("tongueResultsContainer").style.display = "none";
+        document.getElementById("eyeResultsContainer").style.display = "none";
+        document.getElementById("skinResultsContainer").style.display = "none";
+        }
         
         // Display wellness score with animation
         const wellnessScore = Math.round(data.wellness_score || 0);

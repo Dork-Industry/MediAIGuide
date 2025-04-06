@@ -191,12 +191,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Display results
     function displayResults(data, foodName) {
+        // Check for explicit error messages first
         if (data.error) {
             alert(`Error: ${data.error}`);
+            noResultsSection.style.display = "block";
+            resultsSection.style.display = "none";
+            document.getElementById("errorMessage").textContent = data.error;
             return;
         }
-        
-        // Show results section
         resultsSection.style.display = 'block';
         noResultsSection.style.display = 'none';
         
