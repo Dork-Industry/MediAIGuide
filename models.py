@@ -126,6 +126,9 @@ class HealthScan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     scan_date = db.Column(db.DateTime, default=datetime.utcnow)
+    scan_type = db.Column(db.String(20), default='face')  # face, tongue, eye, skin
+    
+    # Face scan metrics
     heart_rate = db.Column(db.Float, nullable=True)
     blood_pressure_systolic = db.Column(db.Float, nullable=True)
     blood_pressure_diastolic = db.Column(db.Float, nullable=True)
@@ -136,14 +139,40 @@ class HealthScan(db.Model):
     prq = db.Column(db.Float, nullable=True)  # Parasympathetic Recovery Quotient
     hemoglobin = db.Column(db.Float, nullable=True)
     hemoglobin_a1c = db.Column(db.Float, nullable=True)
-    wellness_score = db.Column(db.Float, nullable=True)
+    
+    # Tongue analysis metrics
+    tongue_color = db.Column(db.String(50), nullable=True)  # e.g., pale, red, purple, etc.
+    tongue_coating = db.Column(db.String(50), nullable=True)  # e.g., thin-white, thick-yellow, etc.
+    tongue_shape = db.Column(db.String(50), nullable=True)  # e.g., swollen, thin, cracked, etc.
+    tcm_diagnosis = db.Column(db.String(100), nullable=True)  # Traditional Chinese Medicine diagnosis
+    vitamin_deficiency = db.Column(db.String(100), nullable=True)  # e.g., B12, iron, etc.
+    infection_indicator = db.Column(db.String(100), nullable=True)  # e.g., thrush, COVID-19 signs
+    
+    # Eye analysis metrics
+    sclera_color = db.Column(db.String(50), nullable=True)  # normal, yellow (jaundice), etc.
+    conjunctiva_color = db.Column(db.String(50), nullable=True)  # normal, pale (anemia), etc.
+    eye_redness = db.Column(db.Float, nullable=True)  # 0-100% scale
+    pupil_reactivity = db.Column(db.String(50), nullable=True)  # normal, sluggish, etc.
+    eye_condition = db.Column(db.String(100), nullable=True)  # detected condition
+    
+    # Skin analysis metrics
+    skin_condition = db.Column(db.String(100), nullable=True)  # detected condition
+    skin_color = db.Column(db.String(50), nullable=True)
+    skin_texture = db.Column(db.String(50), nullable=True)
+    rash_detection = db.Column(db.Boolean, default=False)
+    rash_pattern = db.Column(db.String(100), nullable=True)  # e.g., bullseye (Lyme), etc.
+    
+    # Risk assessments
+    wellness_score = db.Column(db.Float, nullable=True)  # 0-100 overall wellness score
     ascvd_risk = db.Column(db.Float, nullable=True)  # Atherosclerotic Cardiovascular Disease risk
     hypertension_risk = db.Column(db.Float, nullable=True)  # high blood pressure risk
     glucose_risk = db.Column(db.Float, nullable=True)  # high fasting glucose risk
     cholesterol_risk = db.Column(db.Float, nullable=True)  # high total cholesterol risk
-    tuberculosis_risk = db.Column(db.Float, nullable=True)
-    heart_age = db.Column(db.Float, nullable=True)
-    notes = db.Column(db.Text, nullable=True)
+    tuberculosis_risk = db.Column(db.Float, nullable=True)  # TB risk
+    heart_age = db.Column(db.Float, nullable=True)  # estimated heart age
+    
+    scan_image_path = db.Column(db.String(255), nullable=True)  # Path to saved image for analysis
+    notes = db.Column(db.Text, nullable=True)  # Additional notes or detection details
     
     # Relationships
     user = db.relationship('User', backref=db.backref('health_scans', lazy='dynamic'))

@@ -107,7 +107,9 @@ def register():
 # Main routes
 @app.route('/')
 def home():
-    return render_template('home.html', title='Medicine AI')
+    # Fetch featured doctors (verified and active) to display on home page
+    featured_doctors = db.session.query(Doctor).filter_by(is_verified=True, is_active=True).order_by(Doctor.average_rating.desc()).limit(4).all()
+    return render_template('home.html', title='Medicine AI', featured_doctors=featured_doctors)
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
@@ -372,13 +374,13 @@ def internal_error(error):
 @app.route('/health-scanner')
 @login_required
 def health_scanner():
-    """Health scanner page to analyze vital signs using facial data"""
+    """Health scanner page to analyze vital signs and health metrics"""
     return render_template('health_scanner.html')
 
 @app.route('/api/health-scan', methods=['POST'])
 @login_required
 def api_health_scan():
-    """API endpoint to process health scan data"""
+    """API endpoint to process health scan data for multiple scan types"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
     
@@ -387,8 +389,17 @@ def api_health_scan():
         return jsonify({"error": "You have reached your search limit. Please upgrade your subscription."}), 403
     
     data = request.get_json()
-    scan_type = data.get('scan_type')
-    scan_data = data.get('scan_data')
+    scan_type = data.get('scan_type', 'face')
+    image_data = data.get('image_data') # Base64 encoded image
+    
+    # Validate scan type
+    valid_scan_types = ['face', 'tongue', 'eye', 'skin']
+    if scan_type not in valid_scan_types:
+        return jsonify({"error": "Invalid scan type"}), 400
+    
+    # Validate image data
+    if not image_data:
+        return jsonify({"error": "Image data is required"}), 400
     
     try:
         # Record the search
@@ -396,35 +407,90 @@ def api_health_scan():
         
         # Process scan with OpenAI API
         import json
+        import base64
+        import tempfile
+        import os
         from utils import analyze_health_data
         
-        result = analyze_health_data(scan_data)
+        # Save the image temporarily for analysis
+        temp_dir = tempfile.mkdtemp()
+        temp_image_path = os.path.join(temp_dir, f"scan_{current_user.id}.jpg")
         
-        # Save the health scan to database
+        try:
+            with open(temp_image_path, "wb") as f:
+                f.write(base64.b64decode(image_data))
+            
+            # Process the image based on scan type
+            result = analyze_health_data(temp_image_path, scan_type)
+            
+        finally:
+            # Clean up the temporary file
+            if os.path.exists(temp_image_path):
+                os.remove(temp_image_path)
+            if os.path.exists(temp_dir):
+                os.rmdir(temp_dir)
+        
+        # Save the scan to database
         if result:
+            # Create a base health scan object with common fields
             new_scan = HealthScan(
                 user_id=current_user.id,
-                heart_rate=result.get('heart_rate'),
-                blood_pressure_systolic=result.get('blood_pressure_systolic'),
-                blood_pressure_diastolic=result.get('blood_pressure_diastolic'),
-                breathing_rate=result.get('breathing_rate'),
-                oxygen_saturation=result.get('oxygen_saturation'),
-                sympathetic_stress=result.get('sympathetic_stress'),
-                parasympathetic_activity=result.get('parasympathetic_activity'),
-                prq=result.get('prq'),
-                hemoglobin=result.get('hemoglobin'),
-                hemoglobin_a1c=result.get('hemoglobin_a1c'),
-                wellness_score=result.get('wellness_score'),
-                ascvd_risk=result.get('ascvd_risk'),
-                hypertension_risk=result.get('hypertension_risk'),
-                glucose_risk=result.get('glucose_risk'),
-                cholesterol_risk=result.get('cholesterol_risk'),
-                tuberculosis_risk=result.get('tuberculosis_risk'),
-                heart_age=result.get('heart_age'),
-                notes=json.dumps(result.get('notes', {}))
+                scan_type=scan_type,
+                scan_image_path=None,  # We don't store the actual image
+                wellness_score=result.get('wellness_score')
             )
+            
+            # Add fields specific to each scan type
+            if scan_type == 'face':
+                new_scan.heart_rate = result.get('heart_rate')
+                new_scan.blood_pressure_systolic = result.get('blood_pressure_systolic')
+                new_scan.blood_pressure_diastolic = result.get('blood_pressure_diastolic')
+                new_scan.breathing_rate = result.get('breathing_rate')
+                new_scan.oxygen_saturation = result.get('oxygen_saturation')
+                new_scan.sympathetic_stress = result.get('sympathetic_stress')
+                new_scan.parasympathetic_activity = result.get('parasympathetic_activity')
+                new_scan.prq = result.get('prq')
+                new_scan.hemoglobin = result.get('hemoglobin')
+                new_scan.hemoglobin_a1c = result.get('hemoglobin_a1c')
+                new_scan.ascvd_risk = result.get('ascvd_risk')
+                new_scan.hypertension_risk = result.get('hypertension_risk')
+                new_scan.glucose_risk = result.get('glucose_risk')
+                new_scan.cholesterol_risk = result.get('cholesterol_risk')
+                new_scan.tuberculosis_risk = result.get('tuberculosis_risk')
+                new_scan.heart_age = result.get('heart_age')
+            
+            elif scan_type == 'tongue':
+                new_scan.tongue_color = result.get('tongue_color')
+                new_scan.tongue_coating = result.get('tongue_coating')
+                new_scan.tongue_shape = result.get('tongue_shape')
+                new_scan.tcm_diagnosis = result.get('tcm_diagnosis')
+                new_scan.vitamin_deficiency = result.get('vitamin_deficiency')
+                new_scan.infection_indicator = result.get('infection_indicator')
+            
+            elif scan_type == 'eye':
+                new_scan.sclera_color = result.get('sclera_color')
+                new_scan.conjunctiva_color = result.get('conjunctiva_color')
+                new_scan.eye_redness = result.get('eye_redness')
+                new_scan.pupil_reactivity = result.get('pupil_reactivity')
+                new_scan.eye_condition = result.get('eye_condition')
+            
+            elif scan_type == 'skin':
+                new_scan.skin_color = result.get('skin_color')
+                new_scan.skin_texture = result.get('skin_texture')
+                new_scan.rash_detection = result.get('rash_detection', False)
+                new_scan.rash_pattern = result.get('rash_pattern')
+                new_scan.skin_condition = result.get('skin_condition')
+            
+            # Add notes and recommendations
+            if result.get('notes'):
+                new_scan.notes = json.dumps(result.get('notes', {}))
+            
+            # Save to database
             db.session.add(new_scan)
             db.session.commit()
+            
+            # Add the scan ID to the result for reference
+            result['scan_id'] = new_scan.id
         
         return jsonify(result)
     except Exception as e:

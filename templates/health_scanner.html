@@ -7,7 +7,56 @@
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="display-5 text-teal fw-bold">Health Scanner</h1>
-            <p class="lead">Scan your facial features to analyze vital signs and health metrics</p>
+            <p class="lead">Advanced health assessment using facial, tongue, eye, and skin analysis</p>
+        </div>
+    </div>
+
+    <!-- Scan Type Selection -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-teal text-white">
+                    <h3 class="mb-0 fs-5">Choose Scan Type</h3>
+                </div>
+                <div class="card-body">
+                    <div class="scan-type-selector">
+                        <div class="scan-type-options">
+                            <div class="form-check form-check-inline scan-option">
+                                <input class="form-check-input" type="radio" name="scanType" id="scanTypeFace" value="face" checked>
+                                <label class="form-check-label" for="scanTypeFace">
+                                    <i data-feather="user" class="scan-icon"></i>
+                                    <span>Face Scan</span>
+                                    <small>Vital signs & cardiovascular health</small>
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline scan-option">
+                                <input class="form-check-input" type="radio" name="scanType" id="scanTypeTongue" value="tongue">
+                                <label class="form-check-label" for="scanTypeTongue">
+                                    <i data-feather="trending-up" class="scan-icon"></i>
+                                    <span>Tongue Analysis</span>
+                                    <small>TCM diagnosis & vitamin deficiencies</small>
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline scan-option">
+                                <input class="form-check-input" type="radio" name="scanType" id="scanTypeEye" value="eye">
+                                <label class="form-check-label" for="scanTypeEye">
+                                    <i data-feather="eye" class="scan-icon"></i>
+                                    <span>Eye Analysis</span>
+                                    <small>Jaundice, anemia & eye conditions</small>
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline scan-option">
+                                <input class="form-check-input" type="radio" name="scanType" id="scanTypeSkin" value="skin">
+                                <label class="form-check-label" for="scanTypeSkin">
+                                    <i data-feather="grid" class="scan-icon"></i>
+                                    <span>Skin Analysis</span>
+                                    <small>Rashes, melanoma & skin conditions</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -20,7 +69,7 @@
                     <div id="loading" class="position-absolute top-0 start-0 w-100 h-100 bg-light d-flex justify-content-center align-items-center" style="display: none; opacity: 0.8;">
                         <div class="text-center">
                             <div class="spinner-border text-teal mb-3" role="status"></div>
-                            <p class="mb-0 fw-medium">Analyzing your health metrics...</p>
+                            <p class="mb-0 fw-medium" id="loadingText">Analyzing your health metrics...</p>
                         </div>
                     </div>
                 </div>
@@ -28,7 +77,7 @@
                     <button id="startScan" class="btn btn-teal">
                         <i data-feather="activity" class="me-2"></i> Start Health Scan
                     </button>
-                    <button id="captureFace" class="btn btn-outline-teal" disabled>
+                    <button id="captureImage" class="btn btn-outline-teal" disabled>
                         <i data-feather="camera" class="me-2"></i> Capture
                     </button>
                     <button id="recordVoice" class="btn btn-outline-teal" disabled>
@@ -39,16 +88,45 @@
 
             <div class="card mb-4">
                 <div class="card-header bg-teal text-white">
-                    <h3 class="mb-0 fs-5">How It Works</h3>
+                    <h3 class="mb-0 fs-5" id="instructionsTitle">How It Works</h3>
                 </div>
                 <div class="card-body">
-                    <ol class="mb-0">
-                        <li class="mb-2">Click "Start Health Scan" to initialize your camera</li>
-                        <li class="mb-2">Position your face clearly in the frame</li>
-                        <li class="mb-2">Press "Capture" to scan your facial features</li>
-                        <li class="mb-2">Optionally record voice for enhanced analysis</li>
-                        <li>Review your comprehensive health assessment</li>
-                    </ol>
+                    <div id="faceScanInstructions">
+                        <ol class="mb-0">
+                            <li class="mb-2">Click "Start Health Scan" to initialize your camera</li>
+                            <li class="mb-2">Position your face clearly in the frame</li>
+                            <li class="mb-2">Keep still and press "Capture" to scan your facial features</li>
+                            <li class="mb-2">Optionally record voice for enhanced analysis</li>
+                            <li>Review your cardiovascular health assessment</li>
+                        </ol>
+                    </div>
+                    <div id="tongueScanInstructions" style="display: none;">
+                        <ol class="mb-0">
+                            <li class="mb-2">Click "Start Health Scan" to initialize your camera</li>
+                            <li class="mb-2">Position your tongue clearly in the frame, open your mouth wide</li>
+                            <li class="mb-2">Ensure good lighting and press "Capture"</li>
+                            <li class="mb-2">Your tongue coating, color, and shape will be analyzed</li>
+                            <li>Review your TCM diagnosis and nutritional insights</li>
+                        </ol>
+                    </div>
+                    <div id="eyeScanInstructions" style="display: none;">
+                        <ol class="mb-0">
+                            <li class="mb-2">Click "Start Health Scan" to initialize your camera</li>
+                            <li class="mb-2">Position your eye clearly in the frame, avoid blinking</li>
+                            <li class="mb-2">Ensure good lighting and press "Capture"</li>
+                            <li class="mb-2">Your sclera, conjunctiva, and pupil reactivity will be analyzed</li>
+                            <li>Review your eye health assessment</li>
+                        </ol>
+                    </div>
+                    <div id="skinScanInstructions" style="display: none;">
+                        <ol class="mb-0">
+                            <li class="mb-2">Click "Start Health Scan" to initialize your camera</li>
+                            <li class="mb-2">Position the skin area you want to analyze in the frame</li>
+                            <li class="mb-2">Ensure good lighting and press "Capture"</li>
+                            <li class="mb-2">Your skin texture, color, and any abnormalities will be analyzed</li>
+                            <li>Review your skin health assessment</li>
+                        </ol>
+                    </div>
                 </div>
             </div>
 
@@ -57,111 +135,237 @@
                     <h3 class="mb-0 fs-5">Privacy Information</h3>
                 </div>
                 <div class="card-body">
-                    <p class="mb-0">All health scanning is performed securely. Your facial data is processed locally in your browser and is not permanently stored. Results are saved to your account for historical tracking purposes.</p>
+                    <p class="mb-0">All health scanning is performed securely. Your biometric data is processed only for health analysis and is not permanently stored. Results are saved to your account for historical tracking purposes.</p>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-6">
             <div id="results" style="display: none;">
-                <!-- Wellness Score Card -->
-                <div class="wellness-score-card mb-4">
-                    <h3 class="mb-3">Your Wellness Score</h3>
-                    <div class="score-value" id="wellnessScore">0</div>
-                    <div class="score-label" id="wellnessLabel">Calculating...</div>
-                    
-                    <div class="score-breakdown">
-                        <div class="score-item">
-                            <div class="score-item-value" id="heartAge">--</div>
-                            <div class="score-item-label">Heart Age</div>
+                <!-- Scan Results Container -->
+                <div id="faceScanResults">
+                    <!-- Wellness Score Card -->
+                    <div class="wellness-score-card mb-4">
+                        <h3 class="mb-3">Your Wellness Score</h3>
+                        <div class="score-value" id="wellnessScore">0</div>
+                        <div class="score-label" id="wellnessLabel">Calculating...</div>
+                        
+                        <div class="score-breakdown">
+                            <div class="score-item">
+                                <div class="score-item-value" id="heartAge">--</div>
+                                <div class="score-item-label">Heart Age</div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-item-value" id="stressLevel">--</div>
+                                <div class="score-item-label">Stress</div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-item-value" id="recoveryLevel">--</div>
+                                <div class="score-item-label">Recovery</div>
+                            </div>
                         </div>
-                        <div class="score-item">
-                            <div class="score-item-value" id="stressLevel">--</div>
-                            <div class="score-item-label">Stress</div>
+                    </div>
+
+                    <!-- Vital Signs Card -->
+                    <div class="result-card mb-4">
+                        <div class="result-header">
+                            <h3 class="mb-0 fs-5">Vital Signs</h3>
                         </div>
-                        <div class="score-item">
-                            <div class="score-item-value" id="recoveryLevel">--</div>
-                            <div class="score-item-label">Recovery</div>
+                        <div class="result-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Heart Rate</div>
+                                            <div class="metric-value" id="heartRate">-- bpm</div>
+                                        </div>
+                                        <div class="metric-bar">
+                                            <div class="metric-progress" id="heartRateBar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Blood Pressure</div>
+                                            <div class="metric-value" id="bloodPressure">--/-- mmHg</div>
+                                        </div>
+                                        <div class="metric-bar">
+                                            <div class="metric-progress" id="bloodPressureBar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Breathing Rate</div>
+                                            <div class="metric-value" id="breathingRate">-- bpm</div>
+                                        </div>
+                                        <div class="metric-bar">
+                                            <div class="metric-progress" id="breathingRateBar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Oxygen Saturation</div>
+                                            <div class="metric-value" id="oxygenSaturation">--%</div>
+                                        </div>
+                                        <div class="metric-bar">
+                                            <div class="metric-progress" id="oxygenSaturationBar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Hemoglobin</div>
+                                            <div class="metric-value" id="hemoglobin">-- g/dL</div>
+                                        </div>
+                                        <div class="metric-bar">
+                                            <div class="metric-progress" id="hemoglobinBar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">HbA1c</div>
+                                            <div class="metric-value" id="hba1c">--%</div>
+                                        </div>
+                                        <div class="metric-bar">
+                                            <div class="metric-progress" id="hba1cBar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Health Risks Card -->
+                    <div class="result-card mb-4">
+                        <div class="result-header">
+                            <h3 class="mb-0 fs-5">Health Risk Assessment</h3>
+                        </div>
+                        <div class="result-body">
+                            <div class="health-metric">
+                                <div class="metric-header">
+                                    <div class="metric-name">Cardiovascular Risk (ASCVD)</div>
+                                    <div class="metric-value" id="ascvdRisk">--%</div>
+                                </div>
+                                <div class="metric-bar">
+                                    <div class="metric-progress risk-low" id="ascvdRiskBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="health-metric">
+                                <div class="metric-header">
+                                    <div class="metric-name">Hypertension Risk</div>
+                                    <div class="metric-value" id="hypertensionRisk">--%</div>
+                                </div>
+                                <div class="metric-bar">
+                                    <div class="metric-progress risk-low" id="hypertensionRiskBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="health-metric">
+                                <div class="metric-header">
+                                    <div class="metric-name">High Glucose Risk</div>
+                                    <div class="metric-value" id="glucoseRisk">--%</div>
+                                </div>
+                                <div class="metric-bar">
+                                    <div class="metric-progress risk-low" id="glucoseRiskBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="health-metric">
+                                <div class="metric-header">
+                                    <div class="metric-name">High Cholesterol Risk</div>
+                                    <div class="metric-value" id="cholesterolRisk">--%</div>
+                                </div>
+                                <div class="metric-bar">
+                                    <div class="metric-progress risk-low" id="cholesterolRiskBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="health-metric">
+                                <div class="metric-header">
+                                    <div class="metric-name">Tuberculosis Risk</div>
+                                    <div class="metric-value" id="tbRisk">--%</div>
+                                </div>
+                                <div class="metric-bar">
+                                    <div class="metric-progress risk-low" id="tbRiskBar" style="width: 0%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Vital Signs Card -->
-                <div class="result-card mb-4">
-                    <div class="result-header">
-                        <h3 class="mb-0 fs-5">Vital Signs</h3>
-                    </div>
-                    <div class="result-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="health-metric">
-                                    <div class="metric-header">
-                                        <div class="metric-name">Heart Rate</div>
-                                        <div class="metric-value" id="heartRate">-- bpm</div>
-                                    </div>
-                                    <div class="metric-bar">
-                                        <div class="metric-progress" id="heartRateBar" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="health-metric">
-                                    <div class="metric-header">
-                                        <div class="metric-name">Blood Pressure</div>
-                                        <div class="metric-value" id="bloodPressure">--/-- mmHg</div>
-                                    </div>
-                                    <div class="metric-bar">
-                                        <div class="metric-progress" id="bloodPressureBar" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                            </div>
+                <!-- Tongue Analysis Results -->
+                <div id="tongueScanResults" style="display: none;">
+                    <div class="result-card mb-4">
+                        <div class="result-header">
+                            <h3 class="mb-0 fs-5">Tongue Analysis</h3>
                         </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="health-metric">
-                                    <div class="metric-header">
-                                        <div class="metric-name">Breathing Rate</div>
-                                        <div class="metric-value" id="breathingRate">-- bpm</div>
+                        <div class="result-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Tongue Color</div>
+                                            <div class="metric-value" id="tongueColor">--</div>
+                                        </div>
                                     </div>
-                                    <div class="metric-bar">
-                                        <div class="metric-progress" id="breathingRateBar" style="width: 0%"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Tongue Coating</div>
+                                            <div class="metric-value" id="tongueCoating">--</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="health-metric">
-                                    <div class="metric-header">
-                                        <div class="metric-name">Oxygen Saturation</div>
-                                        <div class="metric-value" id="oxygenSaturation">--%</div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Tongue Shape</div>
+                                            <div class="metric-value" id="tongueShape">--</div>
+                                        </div>
                                     </div>
-                                    <div class="metric-bar">
-                                        <div class="metric-progress" id="oxygenSaturationBar" style="width: 0%"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">TCM Diagnosis</div>
+                                            <div class="metric-value" id="tcmDiagnosis">--</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="health-metric">
-                                    <div class="metric-header">
-                                        <div class="metric-name">Hemoglobin</div>
-                                        <div class="metric-value" id="hemoglobin">-- g/dL</div>
-                                    </div>
-                                    <div class="metric-bar">
-                                        <div class="metric-progress" id="hemoglobinBar" style="width: 0%"></div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Vitamin Deficiency</div>
+                                            <div class="metric-value" id="vitaminDeficiency">--</div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="health-metric">
-                                    <div class="metric-header">
-                                        <div class="metric-name">HbA1c</div>
-                                        <div class="metric-value" id="hba1c">--%</div>
-                                    </div>
-                                    <div class="metric-bar">
-                                        <div class="metric-progress" id="hba1cBar" style="width: 0%"></div>
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Infection Indicator</div>
+                                            <div class="metric-value" id="infectionIndicator">--</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -169,59 +373,118 @@
                     </div>
                 </div>
 
-                <!-- Health Risks Card -->
-                <div class="result-card mb-4">
-                    <div class="result-header">
-                        <h3 class="mb-0 fs-5">Health Risk Assessment</h3>
+                <!-- Eye Analysis Results -->
+                <div id="eyeScanResults" style="display: none;">
+                    <div class="result-card mb-4">
+                        <div class="result-header">
+                            <h3 class="mb-0 fs-5">Eye Analysis</h3>
+                        </div>
+                        <div class="result-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Sclera Color</div>
+                                            <div class="metric-value" id="scleraColor">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Conjunctiva Color</div>
+                                            <div class="metric-value" id="conjunctivaColor">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Eye Redness</div>
+                                            <div class="metric-value" id="eyeRedness">--%</div>
+                                        </div>
+                                        <div class="metric-bar">
+                                            <div class="metric-progress" id="eyeRednessBar" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Pupil Reactivity</div>
+                                            <div class="metric-value" id="pupilReactivity">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Eye Condition</div>
+                                            <div class="metric-value" id="eyeCondition">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="result-body">
-                        <div class="health-metric">
-                            <div class="metric-header">
-                                <div class="metric-name">Cardiovascular Risk (ASCVD)</div>
-                                <div class="metric-value" id="ascvdRisk">--%</div>
-                            </div>
-                            <div class="metric-bar">
-                                <div class="metric-progress risk-low" id="ascvdRiskBar" style="width: 0%"></div>
-                            </div>
+                </div>
+
+                <!-- Skin Analysis Results -->
+                <div id="skinScanResults" style="display: none;">
+                    <div class="result-card mb-4">
+                        <div class="result-header">
+                            <h3 class="mb-0 fs-5">Skin Analysis</h3>
                         </div>
-                        
-                        <div class="health-metric">
-                            <div class="metric-header">
-                                <div class="metric-name">Hypertension Risk</div>
-                                <div class="metric-value" id="hypertensionRisk">--%</div>
+                        <div class="result-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Skin Color</div>
+                                            <div class="metric-value" id="skinColor">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Skin Texture</div>
+                                            <div class="metric-value" id="skinTexture">--</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="metric-bar">
-                                <div class="metric-progress risk-low" id="hypertensionRiskBar" style="width: 0%"></div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Rash Detection</div>
+                                            <div class="metric-value" id="rashDetection">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Rash Pattern</div>
+                                            <div class="metric-value" id="rashPattern">--</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="health-metric">
-                            <div class="metric-header">
-                                <div class="metric-name">High Glucose Risk</div>
-                                <div class="metric-value" id="glucoseRisk">--%</div>
-                            </div>
-                            <div class="metric-bar">
-                                <div class="metric-progress risk-low" id="glucoseRiskBar" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="health-metric">
-                            <div class="metric-header">
-                                <div class="metric-name">High Cholesterol Risk</div>
-                                <div class="metric-value" id="cholesterolRisk">--%</div>
-                            </div>
-                            <div class="metric-bar">
-                                <div class="metric-progress risk-low" id="cholesterolRiskBar" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="health-metric">
-                            <div class="metric-header">
-                                <div class="metric-name">Tuberculosis Risk</div>
-                                <div class="metric-value" id="tbRisk">--%</div>
-                            </div>
-                            <div class="metric-bar">
-                                <div class="metric-progress risk-low" id="tbRiskBar" style="width: 0%"></div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="health-metric">
+                                        <div class="metric-header">
+                                            <div class="metric-name">Skin Condition</div>
+                                            <div class="metric-value" id="skinCondition">--</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -243,7 +506,7 @@
             <div id="noResults" class="text-center py-5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#20c997" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-activity mb-3"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 <h3 class="text-teal mb-3">Ready for Your Health Scan</h3>
-                <p class="text-muted">Start your health scan to see your vital signs and wellness assessment.</p>
+                <p class="text-muted">Start your health scan to see your comprehensive health assessment.</p>
             </div>
         </div>
     </div>

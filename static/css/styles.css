@@ -934,3 +934,131 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus {
         font-size: 1.2rem;
     }
 }
+
+/* Scan Type Selector Styles */
+.scan-type-selector {
+    margin-bottom: 1rem;
+}
+
+.scan-type-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.scan-option {
+    flex: 1;
+    min-width: 200px;
+    margin: 0 !important;
+}
+
+.scan-option label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.scan-option label:hover {
+    border-color: var(--teal-light);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(32, 201, 151, 0.1);
+}
+
+.scan-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.scan-option input[type="radio"]:checked + label {
+    border-color: var(--teal-primary);
+    background-color: var(--teal-ultra-light);
+    box-shadow: 0 8px 15px rgba(32, 201, 151, 0.15);
+}
+
+.scan-option .scan-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 0.75rem;
+    stroke: var(--teal-primary);
+}
+
+.scan-option span {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--neutral-dark);
+}
+
+.scan-option small {
+    display: block;
+    color: var(--neutral-gray);
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+/* Responsive adjustments for scan type selector */
+@media (max-width: 768px) {
+    .scan-type-options {
+        flex-direction: column;
+    }
+    
+    .scan-option {
+        width: 100%;
+    }
+}
+
+/* Tongue Analysis Results */
+.tongue-analysis-card, .eye-analysis-card, .skin-analysis-card {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.analysis-header {
+    background-color: var(--teal-ultra-light);
+    padding: 1.25rem;
+    border-bottom: none;
+}
+
+.analysis-body {
+    padding: 1.5rem;
+}
+
+.analysis-metric {
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 1.25rem;
+}
+
+.analysis-metric:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.analysis-metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.analysis-metric-name {
+    font-weight: 600;
+    color: var(--neutral-dark);
+}
+
+.analysis-metric-value {
+    font-weight: 700;
+    color: var(--teal-primary);
+    text-align: right;
+}
